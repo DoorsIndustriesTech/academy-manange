@@ -1,0 +1,10 @@
+asgiref==3.11.0
+crispy-bootstrap5==2025.6
+Django==6.0.1
+django-crispy-forms==2.5
+gunicorn==25.0.3
+packaging==26.0
+psycopg2-binary==2.9.11
+python-dateutil==2.9.0.post0
+six==1.17.0
+sqlparse==0.5.5

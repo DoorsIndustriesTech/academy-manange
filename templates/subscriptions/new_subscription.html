@@ -1,0 +1,53 @@
+{% extends "index.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'libs/form-wizard/dist/main.min.css' %}">
+<link rel="stylesheet" href="{% static 'css/flatpickr.min.css' %}">
+{% endblock extra_css %}
+
+{% block content %}
+
+    <form method="post" class="wizard wizard-tab" enctype="multipart/form-data">
+        {% csrf_token %}
+        <aside class="wizard-content container">
+            <div class="wizard-step" data-wz-title="Player Information">
+                {% crispy player_form %}
+            </div>
+            <div class="wizard-step" data-wz-title="Parent Information">
+                {% crispy parent_form %}
+            </div>
+            <div class="wizard-step" data-wz-title="Subscription Information">
+                {% crispy subscription_form %}
+            </div>
+        </aside>
+    </form>
+
+{% endblock content %}
+
+{% block extra_js %}
+<script src="{% static 'libs/form-wizard/dist/index.js' %}"></script>
+<script src="{% static 'js/flatpickr.min.js' %}"></script>
+<script>
+    // Date Input Field
+    $( function() { 
+        $('.dateinput').flatpickr();
+    });
+</script>
+<script>
+    let args = {
+        "wz_class": ".wizard",
+        "wz_nav_style": "dots",
+        "wz_button_style": ".btn-primary",
+        "wz_ori": "horizontal",
+        "buttons": true,
+        "navigation": 'buttons',
+        "finish": "Save!"
+    };
+
+    const wizard = new Wizard(args);
+    wizard.init();
+
+</script>
+{% endblock extra_js %}
