@@ -18,17 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
-from rest_framework import serializers, viewsets, routers
-from users.models import Player
-
-class PlayerSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Player
-        fields = ['primary_name', 'secondary_name']
-
-class PlayerViewset(viewsets.ModelViewSet):
-    queryset = Player.objects.all()
-    serializer_class = PlayerSerializer
+from rest_framework import routers
+from users.views import PlayerViewset
 
 router = routers.DefaultRouter()
 router.register(r'players', PlayerViewset)
@@ -36,6 +27,6 @@ router.register(r'players', PlayerViewset)
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('subscriptions.urls')),
-    path('api-', include(router.urls)),
-    path("targets-api/", include("rest_framework.urls"))
+    path('api/', include(router.urls)),
+    # path("targets-api/", include("rest_framework.urls"))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'subscriptions',
     'crispy_forms',
     'crispy_bootstrap5',
-    'rest_framework'
+    'rest_framework',
+    'rest_framework_api_key'
 ]
 
 MIDDLEWARE = [
@@ -157,3 +158,6 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ]
 }
+
+# API Key
+API_KEY_CUSTOM_HEADER = "HTTP_X_API_KEY"
