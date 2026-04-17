@@ -1,7 +1,20 @@
 from django.db import models
 from uuid import uuid4
-from users.models import *
+from uniforms.models import Uniform
+from users.models import Player
 from dateutil.relativedelta import relativedelta
+
+class Outcoming(models.Model):
+    id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
+    description = models.TextField(max_length=260)
+    amount = models.CharField(max_length=10)
+    date = models.DateField()
+
+class UniformPayment(models.Model):
+    id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
+    uniform_id = models.ForeignKey(Uniform, on_delete=models.CASCADE)
+    amount = models.CharField(max_length=7)
+    pay_date = models.DateField()
 
 PHYSICAL_CONDITION_CHOICES = (('GOOD', 'Good'), ('OTHER', 'Other'))
 

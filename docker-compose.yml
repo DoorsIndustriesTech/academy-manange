@@ -11,9 +11,11 @@ services:
       - "5432:5432"
     env_file:
       - .env
+    container_name: database
   targets-web:
     build: .
     volumes:
+      - .:/app
       - static_volume:/app/static
       - media_volume:/app/media
     # ports:
@@ -22,6 +24,7 @@ services:
       - .env
     depends_on:
       - targets-db
+    container_name: web
   targets-nginx:
     image: nginx:latest
     ports:
@@ -33,6 +36,7 @@ services:
       - media_volume:/app/media
     depends_on:
       - targets-web
+    container_name: nginx
 
 volumes:
   postgres_data:

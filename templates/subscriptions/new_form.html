@@ -1,0 +1,34 @@
+{% extends "index.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    <h3>Player Information</h3>
+    {% crispy player_form %}
+
+    <h3>Parent Information</h3>
+    {% crispy parent_form %}
+
+    <div id="subscriptions">
+        <h3>Subscription</h3>
+        {{ subscriptions_form.management_form }}
+        {% for form in subscriptions_form %}
+            {% crispy form %}
+        {% endfor %}
+    </div>
+    <input type="button" value="Add other" id="add_more">
+    <div id="empty-sub" style="display: none;">{% crispy subscriptions_form.empty_form %}</div>
+    <button type="submit" value="Save Player"></button>
+</form>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    $('#add_more').click(function() {
+        var form_idx = $('#id_subscription_set-TOTAL_FORMS').val();
+        $('#subscriptions').append($('#empty-sub').html().replace(/__prefix__/g, form_idx));
+        $('#id_subscription_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+    });
+</script>
+{% endblock extra_js %}
