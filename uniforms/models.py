@@ -8,9 +8,3 @@ class Uniform(models.Model):
     name = models.CharField(max_length=20)
     number = models.CharField(max_length=2)
     size = models.CharField(max_length=10)
-
-class UniformPayment(models.Model):
-    id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
-    uniform_id = models.ForeignKey(Uniform, on_delete=models.CASCADE)
-    amount = models.CharField(max_length=7)
-    pay_date = models.DateField()

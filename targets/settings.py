@@ -28,6 +28,8 @@ DEBUG = os.environ.get('DEBUG')
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',') #['127.0.0.1', 'localhost']
 
+AUTH_USER_MODEL = 'users.User'
+
 
 # Application definition
 
@@ -40,8 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'uniforms',
-    'outcoming',
-    'subscriptions',
+    'accounting',
     'crispy_forms',
     'crispy_bootstrap5',
     'rest_framework',

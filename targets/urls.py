@@ -21,12 +21,15 @@ from django.conf import settings
 from rest_framework import routers
 from users.views import PlayerViewset
 
+admin.site.site_header = 'School Manage Administration'
+admin.site.site_title = 'School Manage'
+
 router = routers.DefaultRouter()
 router.register(r'players', PlayerViewset)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('subscriptions.urls')),
     path('api/', include(router.urls)),
+    path('', include('accounting.urls'))
     # path("targets-api/", include("rest_framework.urls"))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

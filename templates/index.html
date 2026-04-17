@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,41 +8,11 @@
 
     <!-- CSS Imports -->
     <link rel="stylesheet" href="{% static 'css/normalize.css' %}">
-    <link rel="stylesheet" href="{% static 'css/main-styles.css' %}">
+    <!-- <link rel="stylesheet" href="{% static 'css/main-styles.css' %}"> -->
     <link rel="stylesheet" href="{% static 'libs/bootstrap/css/bootstrap.min.css' %}">
     {% block extra_css %}{% endblock extra_css %}
-    <style>
-        .navbar-brand img {
-            width: 100%;
-        }
-        .header-logo {
-            width: 10em;
-        }
-    </style>
 </head>
 <body>
-    <header class="navbar navbar-expand-sm bg-dark navbar-dark sticky-top">
-        <div class="container-fluid">
-            <div class="navbar-brand header-logo">
-                <img src="{% static 'images/volleyball_logo.png' %}" alt="Targets Logo">
-            </div>
-            <ul class="nav gap-2">
-                <li class="nav-item dropdown">
-                    <div class="dropdown">
-                        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Subscriptions</a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="{% url 'add-subscription' %}" class="dropdown-item">Add New</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'subscriptions-list' %}" class="dropdown-item">List</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </header>
 
     <div class="col-xl-12 align-items-center h-100 mt-5 p-5">
         {% block content %}{% endblock content %}
@@ -50,7 +20,6 @@
     
     <!-- Js Imports -->
     <script src="{% static 'js/jquery-4.0.0.min.js' %}"></script>
-    <!-- <script src="{% static 'libs/bootstrap/js/bootstrap.min.js' %}"></script> -->
     <script src="https://kit.fontawesome.com/a22a1e2273.js" crossorigin="anonymous"></script>
     <script src="{% static 'libs/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 
