@@ -1,0 +1,9 @@
+{% extends "index.html" %}
+{% load crispy_forms_tags %}
+{% block content %}
+<form>
+    {% csrf_token %}
+    {% crispy school_form %}
+    {% crispy registration_form %}
+</form>
+{% endblock content %}

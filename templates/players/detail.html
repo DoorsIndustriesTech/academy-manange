@@ -1,0 +1,24 @@
+{% block content %}
+{% if player %}
+<h1>{{player.full_name}}</h1>
+<p>{{player.dob}}</p>
+<p>{{player.gender}}</p>
+<p>{{player.phone}}</p>
+<p>{{player.height}}</p>
+{% endif %}
+
+{% if parent %}
+{% for obj in parent %}
+<h1>{{obj.full_name}}</h1>
+<p>{{obj.full_name}}</p>
+{% endfor %}
+{% endif %}
+
+{% if subscriptions %}
+{% for obj in subscriptions %}
+<h3>{{obj.pay_date}}</h3>
+<h3>{{obj.expiration_date}}</h3>
+{% endfor %}
+{% endif %}
+
+{% endblock content %}
