@@ -1,4 +1,7 @@
+{% extends "index.html" %}
+{% load crispy_forms_tags %}
 {% block content %}
+<a href="{% url 'edit_player' player.id %}">Edit Player</a>
 {% if player %}
 <h1>{{player.full_name}}</h1>
 <p>{{player.dob}}</p>
@@ -16,9 +19,20 @@
 
 {% if subscriptions %}
 {% for obj in subscriptions %}
-<h3>{{obj.pay_date}}</h3>
-<h3>{{obj.expiration_date}}</h3>
+<h3>{{obj}}</h3>
 {% endfor %}
+{% endif %}
+
+{% if subscription_status %}
+<h3>{{subscription_status}}</h3>
+{% endif %}
+
+{% if subscription_form %}
+<form method="post">
+    {% csrf_token %}
+    {% crispy subscription_form %}
+    <button type="submit">Update Subscription</button>
+</form>
 {% endif %}
 
 {% endblock content %}

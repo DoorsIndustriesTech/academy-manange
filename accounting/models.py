@@ -29,9 +29,14 @@ class Subscription(models.Model):
     expiration_date = models.DateField(null=True,blank=True)
 
     def save(self, *args, **kwargs):
-        if self.pay_date and str(self.single_class).upper() == 'NO':
+        if self.pay_date and not self.single_class:
             self.expiration_date = self.pay_date + relativedelta(months=1)
         else:
             self.expiration_date = self.pay_date
 
         super().save(*args, **kwargs)
+    
+class Savings(models.Model):
+    id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
+    date = models.DateField(null=True,blank=True)
+    ammount = models.CharField(max_length=7, null=True, blank=True)

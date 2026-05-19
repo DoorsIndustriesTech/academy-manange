@@ -1,6 +1,6 @@
 from django import forms
 from crispy_forms.helper import FormHelper
-from accounting.models import Subscription
+from accounting.models import Subscription, Outcoming, Savings
 
 class SubscriptionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -14,3 +14,27 @@ class SubscriptionForm(forms.ModelForm):
         model = Subscription
         fields = '__all__'
         exclude = ('player_id', 'expiration_date')
+
+class OutcomingForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.render_hidden_fields = True
+
+    class Meta:
+        model = Outcoming
+        fields = '__all__'
+
+class SavingsForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.render_hidden_fields = True
+    
+    class Meta:
+        model = Savings
+        fields = '__all__'

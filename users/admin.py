@@ -9,7 +9,7 @@ from import_export.admin import ImportExportModelAdmin
 class SubscriptionInline(admin.TabularInline):
     model = Subscription
     extra = 1
-    readonly_fields = ['expiration_date']
+    # readonly_fields = ['expiration_date']
     can_delete = True
 
 class PlayerResource(resources.ModelResource):

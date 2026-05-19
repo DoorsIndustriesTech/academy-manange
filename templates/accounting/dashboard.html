@@ -1,0 +1,46 @@
+{% extends "index.html" %}
+{% block content %}
+<h1>Total Incomings: $ {{ total_incomings|default:0 }}</h1>
+<h1>Total Outcomings: $ {{ total_outcomings|default:0 }}</h1>
+<h1>Total Savings: $ {{ total_savings|default:0 }}</h1>
+
+<div class="row">
+    <div class="col-6">
+        <table id="outcoming-list">
+            <thead>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Ammount</th>
+            </thead>
+        </table>
+    </div>
+    <div class="col-6">
+        <table id="saving-list">
+            <thead>
+                <th>Date</th>
+                <th>Ammount</th>
+            </thead>
+        </table>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+    let outcoming_table = new DataTable('#outcoming-list', {
+        ajax : '{% url "get_outcoming_list" %}',
+        columns : [
+            { data:'date' },
+            { data:'description' },
+            { data:'amount'}
+        ]
+    })
+    let saving_table = new DataTable('#saving-list', {
+        ajax : '{% url "get_saving_list" %}',
+        columns : [
+            { data:'date' },
+            { data:'amount'}
+        ]
+    })
+</script>
+{% endblock extra_js%}

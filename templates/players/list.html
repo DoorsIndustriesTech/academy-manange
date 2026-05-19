@@ -2,11 +2,11 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'libs/datatables/datatables.min.css' %}">
-<link rel="stylesheet" href="{% static 'libs/datatables/responsive.datatables.min.css' %}">
+
 {% endblock extra_css %}
 
 {% block content %}
+<a href="{% url 'register_player' %}">Add New</a>
 <table id="players-list">
     <thead>
         <th>Full Name</th>
@@ -19,15 +19,22 @@
 {% endblock content %}
 
 {% block extra_js %}
-<script src="{% static 'libs/datatables/datatables.min.js' %}"></script>
-<script src="{% static 'libs/datatables/datatables.responsive.min.js' %}"></script>
 <script>
     let players_table = new DataTable('#players-list', {
         ajax : '{% url "get_players_list" %}',
         columns : [
             { data:'full_name' },
             { data:'dob' },
-            { data:'gender' },
+            { 
+                data:'gender',
+                render : function(data) {
+                    if (data === 'F') {
+                        return 'Female';
+                    } else {
+                        return 'Male';
+                    }
+                }
+            },
             { data:'phone' },
             { data:'view'}
         ]
