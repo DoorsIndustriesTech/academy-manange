@@ -1,38 +1,134 @@
 {% extends "index.html" %}
 {% load crispy_forms_tags %}
+
+{% block title %}Player Detail | Targets Database{% endblock title %}
+
 {% block content %}
-<a href="{% url 'edit_player' player.id %}">Edit Player</a>
-{% if player %}
-<h1>{{player.full_name}}</h1>
-<p>{{player.dob}}</p>
-<p>{{player.gender}}</p>
-<p>{{player.phone}}</p>
-<p>{{player.height}}</p>
-{% endif %}
+<section class="page-surface">
+    <header class="page-hero d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-4">
+        <div>
+            <span class="eyebrow">Player Profile</span>
+            <h1>{{ player.full_name }}</h1>
+            <p class="mb-0">Track identity, guardian contact, subscription history, and payment status from one organized profile view.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-quiet" href="{% url 'edit_player' player.id %}">Edit player</a>
+            <a class="btn btn-brand" href="{% url 'players_list' %}">Back to roster</a>
+        </div>
+    </header>
 
-{% if parent %}
-{% for obj in parent %}
-<h1>{{obj.full_name}}</h1>
-<p>{{obj.full_name}}</p>
-{% endfor %}
-{% endif %}
+    <div class="row g-4 mt-1">
+        <div class="col-xl-7">
+            <div class="d-grid gap-4">
+                <section class="content-card">
+                    <div class="profile-heading d-flex align-items-center gap-3 pb-4 mb-4">
+                        <div class="avatar-mark">{{ player.primary_name|slice:":1" }}{{ player.first_last_name|slice:":1" }}</div>
+                        <div>
+                            <h2>{{ player.full_name }}</h2>
+                            <p class="mb-0">{{ player.dob|default:"Date of birth pending" }}</p>
+                        </div>
+                    </div>
 
-{% if subscriptions %}
-{% for obj in subscriptions %}
-<h3>{{obj}}</h3>
-{% endfor %}
-{% endif %}
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="detail-tile">
+                                <span>Gender</span>
+                                <strong>{{ player.get_gender_display|default:player.gender }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="detail-tile">
+                                <span>Phone</span>
+                                <strong>{{ player.phone|default:"Not provided" }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="detail-tile">
+                                <span>Height</span>
+                                <strong>{% if player.height %}{{ player.height }}{% else %}Not provided{% endif %}</strong>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="detail-tile">
+                                <span>Profile ID</span>
+                                <strong>{{ player.id }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-{% if subscription_status %}
-<h3>{{subscription_status}}</h3>
-{% endif %}
+                {% if parent %}
+                    <section class="content-card">
+                        <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+                            <div>
+                                <h2 class="section-title">Parent contact</h2>
+                                <p class="section-subtitle mb-0">Primary family record connected to this athlete.</p>
+                            </div>
+                        </div>
+                        {% with main_parent=parent.0 %}
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="detail-tile">
+                                        <span>Full name</span>
+                                        <strong>{{ main_parent.full_name }}</strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="detail-tile">
+                                        <span>Phone</span>
+                                        <strong>{{ main_parent.phone }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endwith %}
+                    </section>
+                {% endif %}
+            </div>
+        </div>
 
-{% if subscription_form %}
-<form method="post">
-    {% csrf_token %}
-    {% crispy subscription_form %}
-    <button type="submit">Update Subscription</button>
-</form>
-{% endif %}
+        <div class="col-xl-5">
+            <div class="d-grid gap-4">
+                <section class="content-card">
+                    <div class="mb-3">
+                        <h2 class="section-title">Subscription state</h2>
+                        <p class="section-subtitle mb-0">Current status inferred from the latest expiration date.</p>
+                    </div>
+                    {% if subscription_status == 'Remember' %}
+                        <div class="status-pill status-pill--warning">Payment reminder needed</div>
+                        <form method="post" action="{% url 'update_subscription' player.id %}" class="mt-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-brand">Update Subscription</button>
+                        </form>
+                    {% else %}
+                        <div class="status-pill">Subscription updated</div>
+                    {% endif %}
 
+                    {% if subscriptions %}
+                        <div class="d-flex flex-wrap gap-2 mt-3">
+                            {% for obj in subscriptions %}
+                                <span class="tag-chip">{{ obj }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </section>
+
+                {% if subscription_form %}
+                    <section class="content-card">
+                        <div class="mb-3">
+                            <h2 class="section-title">Add subscription payment</h2>
+                            <p class="section-subtitle mb-0">Append a new payment record directly from the profile page.</p>
+                        </div>
+                        <form method="post" class="d-grid gap-3">
+                            {% csrf_token %}
+                            {% crispy subscription_form %}
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-brand">Update subscription</button>
+                            </div>
+                        </form>
+                    </section>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
 {% endblock content %}

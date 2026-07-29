@@ -31,6 +31,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('', include('users.urls')),
-    path('accounting/', include('accounting.urls'))
+    path('accounting/', include('accounting.urls')),
     # path("targets-api/", include("rest_framework.urls"))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

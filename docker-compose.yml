@@ -1,6 +1,7 @@
 services:
   targets-db:
     image: postgres:bookworm
+    restart: unless-stopped
     volumes:
       - postgres_data:/var/lib/postgresql
     environment:
@@ -14,6 +15,7 @@ services:
     container_name: database
   targets-web:
     build: .
+    restart: unless-stopped
     volumes:
       - .:/app
       - static_volume:/app/static
@@ -27,6 +29,7 @@ services:
     container_name: web
   targets-nginx:
     image: nginx:latest
+    restart: unless-stopped
     ports:
       - 80:80
       - 443:443

@@ -1,9 +1,32 @@
 {% extends "index.html" %}
 {% load crispy_forms_tags %}
+
+{% block title %}New Expense | Targets Database{% endblock title %}
+
 {% block content %}
-<form method='post'>
-    {% csrf_token %}
-    {% crispy outcoming_form %}
-    <button type="submit">Save Outcoming</button>
-</form>
+<section class="page-surface page-surface--narrow">
+    <header class="page-hero d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-3">
+        <div>
+            <span class="eyebrow">Accounting Entry</span>
+            <h1>Record expense</h1>
+            <p class="mb-0">Capture the description, amount, and date for the outgoing movement.</p>
+        </div>
+        <a class="btn btn-quiet" href="{% url 'accounting_dashboard' %}">Back to dashboard</a>
+    </header>
+
+    <form method="post" class="d-grid gap-4 mt-4">
+        {% csrf_token %}
+        <section class="content-card">
+            <div class="mb-4">
+                <h2 class="section-title">Expense details</h2>
+                <p class="section-subtitle mb-0">Use a clear description so the dashboard stays easy to audit.</p>
+            </div>
+            {% crispy outcoming_form %}
+        </section>
+        <div class="d-flex flex-wrap justify-content-end gap-2">
+            <a class="btn btn-quiet" href="{% url 'accounting_dashboard' %}">Cancel</a>
+            <button type="submit" class="btn btn-brand">Save expense</button>
+        </div>
+    </form>
+</section>
 {% endblock content %}

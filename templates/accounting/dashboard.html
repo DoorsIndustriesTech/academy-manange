@@ -1,33 +1,100 @@
 {% extends "index.html" %}
-{% block content %}
-<h1>Total Incomings: $ {{ total_incomings|default:0 }}</h1>
-<h1>Total Outcomings: $ {{ total_outcomings|default:0 }}</h1>
-<h1>Total Savings: $ {{ total_savings|default:0 }}</h1>
+{% load humanize %}
 
-<div class="row">
-    <div class="col-6">
-        <table id="outcoming-list">
-            <thead>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Ammount</th>
-            </thead>
-        </table>
-    </div>
-    <div class="col-6">
-        <table id="saving-list">
-            <thead>
-                <th>Date</th>
-                <th>Ammount</th>
-            </thead>
-        </table>
-    </div>
-</div>
+{% block title %}Accounting | Targets Database{% endblock title %}
+
+{% block content %}
+<section class="page-surface">
+    <header class="page-hero d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-4">
+        <div>
+            <span class="eyebrow">Accounting</span>
+            <h1>Financial command center</h1>
+            <p class="mb-0">Monitor subscriptions, expenses, savings, and current balance from one clear dashboard.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-quiet" href="{% url 'add_outcoming' %}">Record expense</a>
+            <a class="btn btn-brand" href="{% url 'add_saving' %}">Record saving</a>
+        </div>
+    </header>
+
+    <section class="row g-3 my-4">
+        <div class="col-sm-6 col-xl-3">
+            <article class="stat-card h-100">
+                <p>Total incomings</p>
+                <h2>$ {{ total_incomings|intcomma|default:0 }}</h2>
+                <span>Aggregated from player subscriptions.</span>
+            </article>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <article class="stat-card h-100">
+                <p>Total expenses</p>
+                <h2>$ {{ total_outcoming|intcomma|default:0 }}</h2>
+                <span>All operational costs registered in the system.</span>
+            </article>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <article class="stat-card h-100">
+                <p>Total savings</p>
+                <h2>$ {{ total_savings|intcomma|default:0 }}</h2>
+                <span>Protected funds tracked in the savings ledger.</span>
+            </article>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <article class="stat-card h-100 stat-card--accent">
+                <p>Current balance</p>
+                <h2>$ {{ balance|intcomma|default:0 }}</h2>
+                <span>Incoming revenue minus expenses and savings.</span>
+            </article>
+        </div>
+    </section>
+
+    <section class="row g-4">
+        <div class="col-xl-6">
+            <article class="data-card h-100">
+                <div class="mb-3">
+                    <h2 class="section-title">Outgoing expenses</h2>
+                    <p class="section-subtitle mb-0">Recent payments and operational costs.</p>
+                </div>
+                <div class="table-responsive">
+                    <table id="outcoming-list">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </article>
+        </div>
+
+        <div class="col-xl-6">
+            <article class="data-card h-100">
+                <div class="mb-3">
+                    <h2 class="section-title">Savings activity</h2>
+                    <p class="section-subtitle mb-0">Latest amounts moved into savings.</p>
+                </div>
+                <div class="table-responsive">
+                    <table id="saving-list">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </article>
+        </div>
+    </section>
+</section>
 {% endblock content %}
 
 {% block extra_js %}
 <script>
     let outcoming_table = new DataTable('#outcoming-list', {
+        responsive: true,
         ajax : '{% url "get_outcoming_list" %}',
         columns : [
             { data:'date' },
@@ -36,6 +103,7 @@
         ]
     })
     let saving_table = new DataTable('#saving-list', {
+        responsive: true,
         ajax : '{% url "get_saving_list" %}',
         columns : [
             { data:'date' },

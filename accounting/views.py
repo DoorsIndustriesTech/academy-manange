@@ -4,7 +4,9 @@ from django.core.paginator import Paginator
 from datetime import datetime
 from .forms import OutcomingForm, SavingsForm
 from .models import Outcoming, Subscription, Savings
+from users.models import Player
 from django.contrib.auth.decorators import login_required
+from django.contrib.humanize.templatetags import humanize
 # Create your views here.
 
 @login_required
@@ -14,10 +16,7 @@ def add_outcoming(request, template='accounting/new_outcoming.html'):
 
         if outcoming_form.is_valid():
             outcoming_form.save()
-
-            print('Saved')
-        
-            return redirect('outcoming_list')
+            return redirect('accounting_dashboard')
     else:
         outcoming_form = OutcomingForm()
 
@@ -30,14 +29,14 @@ def get_outcoming_list(request):
     outcomings = Outcoming.objects.all().order_by('-date')
 
     paginator = Paginator(outcomings, length)
-    page_number = start // length - 1
+    page_number = start // length + 1
     page = paginator.get_page(page_number)
 
     data = [
         {
             "id" : obj.id,
             "description" : obj.description,
-            "amount" : obj.amount,
+            "amount" : f'$ {humanize.intcomma(obj.amount)}',
             "date" : obj.date
         } for obj in page
     ]
@@ -66,6 +65,8 @@ def accounting_dashboard(request, template='accounting/dashboard.html'):
     total_savings = 0
     for saving in savings:
         total_savings += int(saving.ammount)
+    
+    balance = (total_incomings - total_outcoming) - total_savings
 
     return render(request, template, locals())
 
@@ -76,10 +77,7 @@ def add_saving(request, template='accounting/new_saving.html'):
 
         if saving_form.is_valid():
             saving_form.save()
-
-            print('Saved')
-        
-            return redirect('saving_list')
+            return redirect('accounting_dashboard')
     else:
         saving_form = SavingsForm()
 
@@ -92,13 +90,13 @@ def get_saving_list(request):
     savings = Savings.objects.all().order_by('-date')
 
     paginator = Paginator(savings, length)
-    page_number = start // length - 1
+    page_number = start // length + 1
     page = paginator.get_page(page_number)
 
     data = [
         {
             "id" : obj.id,
-            "amount" : obj.ammount,
+            "amount" : f'$ {humanize.intcomma(obj.ammount)}',
             "date" : obj.date
         } for obj in page
     ]
@@ -110,3 +108,19 @@ def get_saving_list(request):
     }
 
     return JsonResponse(response)
+
+@login_required
+def update_subscription(request, id=None):
+    if request.method != 'POST':
+        return redirect('player_detail', id=id)
+
+    latest_sub = Subscription.objects.filter(player_id=id).latest('pay_date')
+    subscrption = Subscription.objects.create(
+        player_id = Player.objects.get(id=id),
+        pay_date = datetime.now().date(),
+        physical_condition = latest_sub.physical_condition,
+        condition = latest_sub.condition,
+        single_class = latest_sub.single_class,
+        ammount = latest_sub.ammount
+    )
+    return redirect('player_detail', id=id)

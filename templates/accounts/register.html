@@ -1,9 +1,54 @@
 {% extends "index.html" %}
 {% load crispy_forms_tags %}
+
+{% block title %}Register | Targets Database{% endblock title %}
+
 {% block content %}
-<form>
-    {% csrf_token %}
-    {% crispy school_form %}
-    {% crispy registration_form %}
-</form>
+<section class="auth-shell p-3 p-lg-5">
+    <div class="register-layout mx-auto">
+        <header class="page-hero d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-4 mb-4">
+            <div>
+                <span class="eyebrow">Workspace Setup</span>
+                <h1>Create your operating hub</h1>
+                <p class="mb-0">Set up the organization and first administrator account for the Targets workspace.</p>
+            </div>
+            <a class="btn btn-quiet" href="{% url 'login' %}">Back to sign in</a>
+        </header>
+
+        <form method="post" enctype="multipart/form-data" class="d-grid gap-4">
+            {% csrf_token %}
+
+            <section class="content-card">
+                <div class="row g-4 align-items-start">
+                    <div class="col-lg-4">
+                        <span class="eyebrow">Organization</span>
+                        <h2 class="section-title mt-2">School profile</h2>
+                        <p class="section-subtitle mb-0">Define the school or club that will own the athletes, accounting records, and daily workflows.</p>
+                    </div>
+                    <div class="col-lg-8">
+                        {% crispy school_form %}
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-card">
+                <div class="row g-4 align-items-start">
+                    <div class="col-lg-4">
+                        <span class="eyebrow">Administration</span>
+                        <h2 class="section-title mt-2">Coach account</h2>
+                        <p class="section-subtitle mb-0">Create the first operational user who will access the platform and manage player records.</p>
+                    </div>
+                    <div class="col-lg-8">
+                        {% crispy registration_form %}
+                    </div>
+                </div>
+            </section>
+
+            <div class="d-flex flex-wrap justify-content-end align-items-center gap-3">
+                <a class="auth-link" href="{% url 'login' %}">I already have an account</a>
+                <button type="submit" class="btn btn-brand">Create account</button>
+            </div>
+        </form>
+    </div>
+</section>
 {% endblock content %}

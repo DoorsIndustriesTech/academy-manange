@@ -1,31 +1,75 @@
 {% extends "index.html" %}
-{% load static %}
 
-{% block extra_css %}
-
-{% endblock extra_css %}
+{% block title %}Players | Targets Database{% endblock title %}
 
 {% block content %}
-<a href="{% url 'register_player' %}">Add New</a>
-<table id="players-list">
-    <thead>
-        <th>Full Name</th>
-        <th>Date of Birth</th>
-        <th>Gender</th>
-        <th>Phone</th>
-        <th>Actions</th>
-    </thead>
-</table>
+<section class="page-surface">
+    <header class="page-hero d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-4">
+        <div>
+            <span class="eyebrow">Roster Hub</span>
+            <h1>Player directory</h1>
+            <p class="mb-0">Search, sort, and open every athlete profile from one fast operating view.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-quiet" href="{% url 'accounting_dashboard' %}">View accounting</a>
+            <a class="btn btn-brand" href="{% url 'register_player' %}">Add new player</a>
+        </div>
+    </header>
+
+    <div class="row g-3 my-4">
+        <div class="col-md-4">
+            <article class="metric-card h-100">
+                <strong>{{ players|length }}</strong>
+                <span>Registered players</span>
+            </article>
+        </div>
+        <div class="col-md-4">
+            <article class="metric-card h-100">
+                <strong>Live</strong>
+                <span>DataTables search and sort</span>
+            </article>
+        </div>
+        <div class="col-md-4">
+            <article class="metric-card h-100">
+                <strong>Fast</strong>
+                <span>Detail access in one click</span>
+            </article>
+        </div>
+    </div>
+
+    <section class="data-card">
+        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-3">
+            <div>
+                <h2 class="section-title">Active roster</h2>
+                <p class="section-subtitle mb-0">Profiles are loaded live from the player database.</p>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table id="players-list">
+                <thead>
+                    <tr>
+                        <th>Full Name</th>
+                        <th>Date of Birth</th>
+                        <th>Gender</th>
+                        <th>Phone</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </section>
+</section>
 {% endblock content %}
 
 {% block extra_js %}
 <script>
     let players_table = new DataTable('#players-list', {
+        responsive: true,
         ajax : '{% url "get_players_list" %}',
         columns : [
             { data:'full_name' },
             { data:'dob' },
-            { 
+            {
                 data:'gender',
                 render : function(data) {
                     if (data === 'F') {
@@ -36,7 +80,7 @@
                 }
             },
             { data:'phone' },
-            { data:'view'}
+            { data:'view' }
         ]
     })
 </script>

@@ -4,6 +4,15 @@ from .models import User, School, Player, Parent
 from accounting.models import Subscription
 from crispy_forms.helper import FormHelper
 
+
+def build_date_picker_attrs(placeholder):
+    return {
+        "class": "js-date-input",
+        "placeholder": placeholder,
+        "autocomplete": "off",
+        "data-flatpickr-alt-format": "F j, Y",
+    }
+
 class AdminRegistrationForm(UserCreationForm):
     class Meta:
         model = User
@@ -33,10 +42,14 @@ class SchoolForm(forms.ModelForm):
 class PlayerForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.render_hidden_fields = True
+        if "dob" in self.fields:
+            self.fields["dob"].widget = forms.TextInput(
+                attrs=build_date_picker_attrs("Select date of birth")
+            )
 
     class Meta:
         model = Player

@@ -1,7 +1,7 @@
 import calendar
 from datetime import datetime
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from .models import Player, Parent
 from .serializers import PlayerSerializer
 from rest_framework import viewsets
@@ -13,6 +13,7 @@ from django.contrib.auth import login, authenticate
 from django.core.paginator import Paginator
 from django.forms import inlineformset_factory
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 
 class PlayerViewset(viewsets.ModelViewSet):
     permission_classes = [HasAPIKey]
@@ -75,7 +76,7 @@ def get_players_list(request):
             'dob' : player.dob,
             'gender' : player.gender,
             'phone' : player.phone,
-            'view' : '<a href="/player/'+player.id+'/detail">See More</a>'
+            'view' : f'<a class="table-action" href="{reverse("player_detail", args=[player.id])}">Open profile</a>'
         }
         for player in page
     ]
@@ -174,4 +175,4 @@ def edit_player(request, id=None,template='players/edit_form.html'):
         player_form = PlayerForm(instance=object)
         parent_form = ParentForm(instance=parent)
     
-    return render(request, template, locals())   
+    return render(request, template, locals())

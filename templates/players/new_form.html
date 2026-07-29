@@ -1,33 +1,75 @@
 {% extends "index.html" %}
 {% load crispy_forms_tags %}
 
+{% block title %}Register Player | Targets Database{% endblock title %}
+
 {% block content %}
-<form method="post">
-    {% csrf_token %}
-    <h3>Player Information</h3>
-    {% crispy player_form %}
+<section class="page-surface">
+    <header class="page-hero d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-4">
+        <div>
+            <span class="eyebrow">Player Intake</span>
+            <h1>Register a new athlete</h1>
+            <p class="mb-0">Capture player details, guardian information, and the first subscription payment in a single guided workflow.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-quiet" href="{% url 'players_list' %}">Back to roster</a>
+            <a class="btn btn-soft" href="{% url 'accounting_dashboard' %}">Open accounting</a>
+        </div>
+    </header>
 
-    <h3>Parent Information</h3>
-    {% crispy parent_form %}
+    <form method="post" class="d-grid gap-4 mt-4">
+        {% csrf_token %}
 
-    <div id="subscriptions">
-        <h3>Subscription</h3>
-        {{ subscriptions_form.management_form }}
-        {% for form in subscriptions_form %}
-            {% crispy form %}
-        {% endfor %}
-    </div>
-    <input type="button" value="Add other" id="add_more">
-    <div id="empty-sub" style="display: none;">{% crispy subscriptions_form.empty_form %}</div>
-    <button type="submit" value="Save Player">Save Player</button>
-</form>
+        <section class="content-card">
+            <div class="mb-4">
+                <h2 class="section-title">Player information</h2>
+                <p class="section-subtitle mb-0">Core profile data for the athlete, including personal details and contact information.</p>
+            </div>
+            {% crispy player_form %}
+        </section>
+
+        <section class="content-card">
+            <div class="mb-4">
+                <h2 class="section-title">Parent or guardian</h2>
+                <p class="section-subtitle mb-0">Keep the primary family contact attached to the player profile from the first registration.</p>
+            </div>
+            {% crispy parent_form %}
+        </section>
+
+        <section class="content-card">
+            <div class="mb-4">
+                <h2 class="section-title">Subscriptions</h2>
+                <p class="section-subtitle mb-0">Add one or more payment records. Extra rows can be inserted without leaving the page.</p>
+            </div>
+
+            <div id="subscriptions" class="d-grid gap-3">
+                {{ subscriptions_form.management_form }}
+                {% for form in subscriptions_form %}
+                    <div class="inline-note">
+                        {% crispy form %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex justify-content-end mt-3">
+                <input type="button" value="Add another subscription" id="add_more" class="btn btn-quiet">
+            </div>
+            <div id="empty-sub" class="d-none">{% crispy subscriptions_form.empty_form %}</div>
+        </section>
+
+        <div class="d-flex flex-wrap justify-content-end gap-2">
+            <a class="btn btn-quiet" href="{% url 'players_list' %}">Cancel</a>
+            <button type="submit" class="btn btn-brand">Save player</button>
+        </div>
+    </form>
+</section>
 {% endblock content %}
 
 {% block extra_js %}
 <script>
     $('#add_more').click(function() {
         var form_idx = $('#id_subscription_set-TOTAL_FORMS').val();
-        $('#subscriptions').append($('#empty-sub').html().replace(/__prefix__/g, form_idx));
+        $('#subscriptions').append('<div class="inline-note">' + $('#empty-sub').html().replace(/__prefix__/g, form_idx) + '</div>');
         $('#id_subscription_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
     });
 </script>

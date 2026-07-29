@@ -30,6 +30,8 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(','
 
 AUTH_USER_MODEL = 'users.User'
 
+LOGIN_URL = '/'
+LOGIN_REDIRECT_URL = '/accounting/'
 
 # Application definition
 
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'import_export',
     'users',
     'uniforms',
