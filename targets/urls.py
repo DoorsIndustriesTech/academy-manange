@@ -32,5 +32,6 @@ urlpatterns = [
     path('api/', include(router.urls)),
     path('', include('users.urls')),
     path('accounting/', include('accounting.urls')),
+    path('accounts/',include('django.contrib.auth.urls'))
     # path("targets-api/", include("rest_framework.urls"))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

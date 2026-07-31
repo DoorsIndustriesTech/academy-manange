@@ -15,7 +15,10 @@ def add_outcoming(request, template='accounting/new_outcoming.html'):
         outcoming_form = OutcomingForm(request.POST)
 
         if outcoming_form.is_valid():
-            outcoming_form.save()
+            outcoming = outcoming_form.save(commit=False)
+            outcoming.school = request.user.school
+            outcoming.save()
+            
             return redirect('accounting_dashboard')
     else:
         outcoming_form = OutcomingForm()
@@ -76,7 +79,10 @@ def add_saving(request, template='accounting/new_saving.html'):
         saving_form = SavingsForm(request.POST)
 
         if saving_form.is_valid():
-            saving_form.save()
+            saving = saving_form.save(commit=False)
+            saving.school = request.user.school
+            saving.save()
+
             return redirect('accounting_dashboard')
     else:
         saving_form = SavingsForm()
@@ -114,13 +120,25 @@ def update_subscription(request, id=None):
     if request.method != 'POST':
         return redirect('player_detail', id=id)
 
-    latest_sub = Subscription.objects.filter(player_id=id).latest('pay_date')
-    subscrption = Subscription.objects.create(
-        player_id = Player.objects.get(id=id),
-        pay_date = datetime.now().date(),
-        physical_condition = latest_sub.physical_condition,
-        condition = latest_sub.condition,
-        single_class = latest_sub.single_class,
-        ammount = latest_sub.ammount
-    )
+    latest_sub = Subscription.objects.filter(player_=id).latest('pay_date')
+    current_month = datetime.now().month
+    if current_month - latest_sub.expiration_date.month >= 1:
+        subscrption = Subscription.objects.create(
+            player = Player.objects.get(id=id),
+            pay_date = datetime.now().date(),
+            physical_condition = latest_sub.physical_condition,
+            condition = latest_sub.condition,
+            single_class = latest_sub.single_class,
+            ammount = latest_sub.ammount
+        )
+    else:
+        subscrption = Subscription.objects.create(
+            player = Player.objects.get(id=id),
+            pay_date = latest_sub.expiration_date,
+            physical_condition = latest_sub.physical_condition,
+            condition = latest_sub.condition,
+            single_class = latest_sub.single_class,
+            ammount = latest_sub.ammount
+        )
+
     return redirect('player_detail', id=id)

@@ -20,7 +20,7 @@ class PlayerViewset(viewsets.ModelViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
 
-def adminRegistration(request, template='accounts/register.html'):
+def adminRegistration(request, template='registration/register.html'):
     if request.method == 'POST':
         registration_form = AdminRegistrationForm(request.POST)
         school_form = SchoolForm(request.POST)
@@ -39,7 +39,7 @@ def adminRegistration(request, template='accounts/register.html'):
 
     return render(request, template, locals())
 
-def loginUser(request, template='accounts/login.html'):
+def loginUser(request, template='registration/login.html'):
 
     if request.method == 'POST':
         login_form = LoginForm(request.POST)
@@ -99,10 +99,11 @@ def register_player(request, template='players/new_form.html'):
         subscriptions_form = subscriptions_inline(request.POST)
         if player_form.is_valid() and parent_form.is_valid() and subscriptions_form.is_valid():
             player = player_form.save(commit=False)
+            player.school = request.user.school
             player.save()
 
             parent = parent_form.save(commit=False)
-            parent.player_id = player
+            parent.player = player
             parent.save()
 
             subscriptions = subscriptions_form.save(commit=False)
@@ -110,7 +111,7 @@ def register_player(request, template='players/new_form.html'):
                 obj.delete()
 
             for subscription in subscriptions:
-                subscription.player_id = player
+                subscription.player = player
                 subscription.save()
             
             subscriptions_form.save_m2m()
@@ -167,7 +168,7 @@ def edit_player(request, id=None,template='players/edit_form.html'):
             player.save()
 
             parent = parent_form.save(commit=False)
-            parent.player_id = player
+            parent.player = player
             parent.save()
 
             return redirect('player_detail', id=id)

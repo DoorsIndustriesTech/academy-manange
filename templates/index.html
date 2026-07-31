@@ -18,7 +18,7 @@
     <div class="site-root">
         {% if request.user.is_authenticated %}
             <header class="app-header sticky-top">
-                <div class="container-fluid px-3 px-lg-4">
+                <div class="container-fluid px-3 px-lg-4 d-flex justify-content-between p-4">
                     <nav class="header-nav d-flex flex-wrap align-items-center justify-content-center gap-2" aria-label="Primary navigation">
                         <a class="header-nav__link {% if request.resolver_match.url_name == 'register_player' or request.resolver_match.url_name == 'edit_player' %}is-active{% endif %}" href="{% url 'register_player' %}">
                             Player Intake
@@ -36,6 +36,10 @@
                             Savings
                         </a>
                     </nav>
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-brand" type="submit">Log Out</button>
+                    </form>
                 </div>
             </header>
         {% endif %}

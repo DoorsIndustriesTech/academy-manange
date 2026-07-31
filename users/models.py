@@ -7,8 +7,9 @@ GENDER_CHOICES = (('F', 'Femaie'), ('M', 'Male'))
 JOB_CHOICES = (('Administrative', 'Administrative'), ('Coach', 'Coach'))
 
 class School(models.Model):
-    name = models.CharField(max_length=30)
-    phone = models.CharField(max_length=20)
+    id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
+    name = models.CharField(max_length=30,null=True,blank=True)
+    phone = models.CharField(max_length=20,null=True,blank=True)
     logo = models.ImageField(upload_to='logos',null=True,blank=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True,blank=True)
@@ -30,14 +31,14 @@ class User(AbstractUser):
 
 class Player(models.Model):
     id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
-    coach = models.ForeignKey(User, on_delete=models.PROTECT,null=True, blank=True)
-    primary_name = models.CharField(max_length=50)
+    school = models.ForeignKey(School, on_delete=models.PROTECT,null=True,blank=True)
+    primary_name = models.CharField(max_length=50,null=True,blank=True)
     secondary_name = models.CharField(max_length=50, blank=True, null=True)
-    first_last_name = models.CharField(max_length=50)
+    first_last_name = models.CharField(max_length=50,null=True,blank=True)
     second_last_name = models.CharField(max_length=50, blank=True, null=True)
     dob = models.CharField(max_length=20, null=True, blank=True)
     gender = models.CharField(max_length=2, choices=GENDER_CHOICES, null=True, blank=True)
-    phone = models.CharField(max_length=10)
+    phone = models.CharField(max_length=10,null=True,blank=True)
     height = models.FloatField(null=True, blank=True)
     created_date = models.DateField(auto_now_add=True)
     def full_name(self):
@@ -54,10 +55,10 @@ class Player(models.Model):
     
 class Parent(models.Model):
     id = models.CharField(primary_key=True, max_length=50, default=uuid4, editable=False)
-    player_id = models.ForeignKey(Player, on_delete=models.CASCADE)
-    primary_name = models.CharField(max_length=50)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE,null=True,blank=True)
+    primary_name = models.CharField(max_length=50,null=True,blank=True)
     secondary_name = models.CharField(max_length=50, blank=True, null=True)
-    first_last_name = models.CharField(max_length=50)
+    first_last_name = models.CharField(max_length=50,null=True,blank=True)
     second_last_name = models.CharField(max_length=50, blank=True, null=True)
     phone = models.CharField(max_length=10)
 

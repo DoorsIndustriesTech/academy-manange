@@ -4,7 +4,7 @@ from uuid import uuid4
 
 class Uniform(models.Model):
     id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
-    player_id = models.ForeignKey(Player, on_delete=models.CASCADE)
-    name = models.CharField(max_length=20)
-    number = models.CharField(max_length=2)
-    size = models.CharField(max_length=10)
+    player = models.ForeignKey(Player, on_delete=models.CASCADE,null=True,blank=True)
+    name = models.CharField(max_length=20,null=True,blank=True)
+    number = models.CharField(max_length=2,null=True,blank=True)
+    size = models.CharField(max_length=10,null=True,blank=True)
