@@ -4,7 +4,7 @@ from django.contrib.auth.models import AbstractUser
 
 GENDER_CHOICES = (('F', 'Femaie'), ('M', 'Male'))
 
-JOB_CHOICES = (('Administrative', 'Administrative'), ('Coach', 'Coach'))
+JOB_CHOICES = ((0, 'Coach'), (1, 'Administrative'), )
 
 class School(models.Model):
     id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
@@ -21,7 +21,7 @@ class User(AbstractUser):
     phone = models.CharField(max_length=20, null=True, blank=True)
     photo = models.ImageField(upload_to='coaches', null=True, blank=True)
     gender = models.CharField(max_length=2, choices=GENDER_CHOICES, null=True, blank=True)
-    job_position = models.CharField(max_length=20, choices=JOB_CHOICES, null=True, blank=True)
+    job_position = models.IntegerField(choices=JOB_CHOICES, null=True, blank=True)
     school = models.ForeignKey(School, on_delete=models.PROTECT, null=True, blank=True)
     height = models.FloatField(blank=True, null=True)
     weight = models.FloatField(blank=True, null=True)
@@ -33,9 +33,9 @@ class Player(models.Model):
     id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
     school = models.ForeignKey(School, on_delete=models.PROTECT,null=True,blank=True)
     primary_name = models.CharField(max_length=50,null=True,blank=True)
-    secondary_name = models.CharField(max_length=50, blank=True, null=True)
+    secondary_name = models.CharField(max_length=50, null=True,blank=True)
     first_last_name = models.CharField(max_length=50,null=True,blank=True)
-    second_last_name = models.CharField(max_length=50, blank=True, null=True)
+    second_last_name = models.CharField(max_length=50,null=True,blank=True)
     dob = models.CharField(max_length=20, null=True, blank=True)
     gender = models.CharField(max_length=2, choices=GENDER_CHOICES, null=True, blank=True)
     phone = models.CharField(max_length=10,null=True,blank=True)
@@ -60,7 +60,7 @@ class Parent(models.Model):
     secondary_name = models.CharField(max_length=50, blank=True, null=True)
     first_last_name = models.CharField(max_length=50,null=True,blank=True)
     second_last_name = models.CharField(max_length=50, blank=True, null=True)
-    phone = models.CharField(max_length=10)
+    phone = models.CharField(max_length=10,null=True,blank=True)
 
     def full_name(self):
         if self.secondary_name or self.second_last_name:

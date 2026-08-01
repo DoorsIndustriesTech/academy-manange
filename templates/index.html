@@ -20,20 +20,11 @@
             <header class="app-header sticky-top">
                 <div class="container-fluid px-3 px-lg-4 d-flex justify-content-between p-4">
                     <nav class="header-nav d-flex flex-wrap align-items-center justify-content-center gap-2" aria-label="Primary navigation">
-                        <a class="header-nav__link {% if request.resolver_match.url_name == 'register_player' or request.resolver_match.url_name == 'edit_player' %}is-active{% endif %}" href="{% url 'register_player' %}">
-                            Player Intake
-                        </a>
                         <a class="header-nav__link {% if request.resolver_match.url_name == 'players_list' or request.resolver_match.url_name == 'player_detail' %}is-active{% endif %}" href="{% url 'players_list' %}">
                             Roster Hub
                         </a>
                         <a class="header-nav__link {% if request.resolver_match.url_name == 'accounting_dashboard' %}is-active{% endif %}" href="{% url 'accounting_dashboard' %}">
                             Accounting
-                        </a>
-                        <a class="header-nav__link {% if request.resolver_match.url_name == 'add_outcoming' %}is-active{% endif %}" href="{% url 'add_outcoming' %}">
-                            Expenses
-                        </a>
-                        <a class="header-nav__link {% if request.resolver_match.url_name == 'add_saving' %}is-active{% endif %}" href="{% url 'add_saving' %}">
-                            Savings
                         </a>
                     </nav>
                     <form method="post" action="{% url 'logout' %}">
@@ -45,24 +36,6 @@
         {% endif %}
 
         <main class="{% if request.user.is_authenticated %}app-main py-4 py-lg-5{% else %}auth-main{% endif %}">
-            {% if request.user.is_authenticated %}
-                <div class="container-fluid px-3 px-lg-4">
-                    <div class="topbar d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
-                        <div class="d-flex flex-wrap align-items-center gap-3">
-                            <span class="badge-soft">Athlete operations</span>
-                            <div class="signed-card">
-                                <span>Signed in</span>
-                                <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
-                            </div>
-                        </div>
-                        <div class="d-flex flex-wrap align-items-center gap-2">
-                            <a class="btn btn-quiet" href="{% url 'players_list' %}">Roster</a>
-                            <a class="btn btn-brand" href="{% url 'register_player' %}">Add player</a>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-
             <div class="{% if request.user.is_authenticated %}container-fluid px-3 px-lg-4{% endif %}">
                 {% block content %}{% endblock content %}
             </div>
@@ -77,25 +50,37 @@
     <script src="{% static 'libs/datatables/datatables.responsive.min.js' %}"></script>
     <script src="{% static 'js/flatpickr.min.js' %}"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        window.initDatePickers = function (root) {
             if (typeof flatpickr !== 'function') {
                 return;
             }
 
-            flatpickr('.js-date-input', {
-                altInput: true,
-                altFormat: 'F j, Y',
-                dateFormat: 'Y-m-d',
-                disableMobile: true,
-                monthSelectorType: 'static',
-                nextArrow: "<span aria-hidden='true'>&rsaquo;</span>",
-                prevArrow: "<span aria-hidden='true'>&lsaquo;</span>",
-                onReady: function(selectedDates, dateStr, instance) {
-                    if (instance.altInput) {
-                        instance.altInput.setAttribute('placeholder', instance.input.getAttribute('placeholder') || 'Select date');
-                    }
+            var scope = root || document;
+
+            scope.querySelectorAll('.js-date-input').forEach(function (input) {
+                if (input._flatpickr || input.closest('[data-fp-omit]')) {
+                    return;
                 }
+
+                flatpickr(input, {
+                    altInput: true,
+                    altFormat: 'F j, Y',
+                    dateFormat: 'Y-m-d',
+                    disableMobile: true,
+                    monthSelectorType: 'static',
+                    nextArrow: "<span aria-hidden='true'>&rsaquo;</span>",
+                    prevArrow: "<span aria-hidden='true'>&lsaquo;</span>",
+                    onReady: function(selectedDates, dateStr, instance) {
+                        if (instance.altInput) {
+                            instance.altInput.setAttribute('placeholder', instance.input.getAttribute('placeholder') || 'Select date');
+                        }
+                    }
+                });
             });
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            window.initDatePickers(document);
         });
     </script>
     {% block extra_js %}{% endblock extra_js %}

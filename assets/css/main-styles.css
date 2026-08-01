@@ -650,3 +650,10 @@ label,
         padding: 1rem;
     }
 }
+
+.inline-container {
+    max-height: 180px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: .5rem;
+}

@@ -23,18 +23,6 @@
                 <span>Registered players</span>
             </article>
         </div>
-        <div class="col-md-4">
-            <article class="metric-card h-100">
-                <strong>Live</strong>
-                <span>DataTables search and sort</span>
-            </article>
-        </div>
-        <div class="col-md-4">
-            <article class="metric-card h-100">
-                <strong>Fast</strong>
-                <span>Detail access in one click</span>
-            </article>
-        </div>
     </div>
 
     <section class="data-card">
@@ -65,7 +53,10 @@
 <script>
     let players_table = new DataTable('#players-list', {
         responsive: true,
-        ajax : '{% url "get_players_list" %}',
+        ajax : {
+            url:'{% url "get_players_list" %}',
+            type:'GET'
+        },
         columns : [
             { data:'full_name' },
             { data:'dob' },

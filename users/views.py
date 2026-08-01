@@ -3,12 +3,13 @@ from datetime import datetime
 from django.http import JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from .models import Player, Parent
+from uniforms.models import Uniform
 from .serializers import PlayerSerializer
 from rest_framework import viewsets
 from rest_framework_api_key.permissions import HasAPIKey
-from .forms import AdminRegistrationForm, SchoolForm, LoginForm, PlayerForm, ParentForm
+from .forms import AdminRegistrationForm, SchoolForm, PlayerForm, ParentForm, UniformForm, UniformPaymentForm
 from accounting.forms import SubscriptionForm
-from accounting.models import Subscription
+from accounting.models import Subscription,UniformPayment
 from django.contrib.auth import login, authenticate
 from django.core.paginator import Paginator
 from django.forms import inlineformset_factory
@@ -36,26 +37,6 @@ def adminRegistration(request, template='registration/register.html'):
     else:
         registration_form = AdminRegistrationForm()
         school_form = SchoolForm()
-
-    return render(request, template, locals())
-
-def loginUser(request, template='registration/login.html'):
-
-    if request.method == 'POST':
-        login_form = LoginForm(request.POST)
-        if login_form.is_valid():
-            username = login_form.cleaned_data['username']
-            password = login_form.cleaned_data['password']
-
-            user = authenticate(request, username=username, password=password)
-
-            if user:
-                login(request, user)
-                return redirect('register_player')
-            else:
-                login_form.add_error(None, "Invalid Credentials")
-    else:
-        login_form = LoginForm()
 
     return render(request, template, locals())
 
@@ -93,15 +74,32 @@ def get_players_list(request):
 @login_required
 def register_player(request, template='players/new_form.html'):
     subscriptions_inline = inlineformset_factory(Player, Subscription, form=SubscriptionForm, extra=1)
+    uniform_pay_inline = inlineformset_factory(Uniform, UniformPayment, form=UniformPaymentForm, extra=1)
     if request.method == 'POST':
         player_form = PlayerForm(request.POST)
-        parent_form = ParentForm(request.POST)
+        uniform_form = UniformForm(request.POST)
+        uniform_payment_form = uniform_pay_inline(request.POST)
+        parent_form = ParentForm(request.POST,prefix='parent')
         subscriptions_form = subscriptions_inline(request.POST)
-        if player_form.is_valid() and parent_form.is_valid() and subscriptions_form.is_valid():
+        if player_form.is_valid() and parent_form.is_valid() and subscriptions_form.is_valid() and uniform_form.is_valid() and uniform_payment_form.is_valid():
             player = player_form.save(commit=False)
             player.school = request.user.school
             player.save()
 
+            uniform = uniform_form.save(commit=False)
+            uniform.player = player
+            uniform.save()
+
+            un_payments = uniform_payment_form.save(commit=False)
+            for up in uniform_payment_form.deleted_objects:
+                up.delete()
+
+            for up in un_payments:
+                up.uniform = uniform
+                up.save()
+
+            uniform_payment_form.save_m2m()
+            
             parent = parent_form.save(commit=False)
             parent.player = player
             parent.save()
@@ -119,7 +117,9 @@ def register_player(request, template='players/new_form.html'):
             return redirect('player_detail', id=player.id)
     else:
         player_form = PlayerForm()
-        parent_form = ParentForm()
+        parent_form = ParentForm(prefix='parent')
+        uniform_form = UniformForm()
+        uniform_payment_form = uniform_pay_inline()
         subscriptions_form = subscriptions_inline()
 
     return render(request, template, locals())
@@ -160,12 +160,25 @@ def player_detail(request, template='players/detail.html', id=None):
 def edit_player(request, id=None,template='players/edit_form.html'):
     object = Player.objects.get(id=id)
     parent = Parent.objects.filter(player_id=object).first()
+    uniform = Uniform.objects.filter(player=object).first()
+    uniform_pay = UniformPayment.objects.filter(uniform=uniform).first()
+    uniform_pay_inline = inlineformset_factory(Uniform, UniformPayment, form=UniformPaymentForm, extra=1)
     if request.method == 'POST':
         player_form = PlayerForm(request.POST,instance=object)
-        parent_form = ParentForm(request.POST,instance=parent)
-        if player_form.is_valid() and parent_form.is_valid():
+        parent_form = ParentForm(request.POST,instance=parent,prefix='parent')
+        uniform_form = UniformForm(request.POST,instance=uniform)
+        uniform_payment_form = uniform_pay_inline(request.POST,instance=uniform_pay)
+        if player_form.is_valid() and parent_form.is_valid() and uniform_form.is_valid() and uniform_payment_form.is_valid():
             player = player_form.save(commit=False)
             player.save()
+
+            uniform = uniform_form.save(commit=False)
+            uniform.player = player
+            uniform.save()
+
+            uniform_payment = uniform_payment_form.save(commit=False)
+            uniform_payment.uniform = uniform
+            uniform_payment.save()
 
             parent = parent_form.save(commit=False)
             parent.player = player
@@ -174,6 +187,8 @@ def edit_player(request, id=None,template='players/edit_form.html'):
             return redirect('player_detail', id=id)
     else:
         player_form = PlayerForm(instance=object)
-        parent_form = ParentForm(instance=parent)
+        parent_form = ParentForm(instance=parent,prefix='parent')
+        uniform_form = UniformForm(instance=object)
+        uniform_payment_form = uniform_pay_inline(instance=uniform)
     
     return render(request, template, locals())

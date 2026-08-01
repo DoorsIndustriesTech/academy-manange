@@ -21,11 +21,40 @@
         {% csrf_token %}
 
         <section class="content-card">
-            <div class="mb-4">
-                <h2 class="section-title">Player information</h2>
-                <p class="section-subtitle mb-0">Core profile data for the athlete, including personal details and contact information.</p>
+            <div class="row">
+                <div class="col-xl-6">
+                    <div class="mb-4">
+                        <h2 class="section-title">Player information</h2>
+                        <p class="section-subtitle mb-0">Core profile data for the athlete, including personal details and contact information.</p>
+                    </div>
+                    {% crispy player_form %}
+                </div>
+                <div class="col-xl-6">
+                    <div class="mb-4">
+                        <h2 class="section-title">Uniform information</h2>
+                        <p class="section-subtitle mb-0">Main information to handle the uniform making.</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl-12">
+                        {% crispy uniform_form %}
+                        </div>  
+                        <div class="col-xl-12">
+                            <div id="uniformsPay" class="d-grid gap-3 inline-container">
+                                {{ uniform_payment_form.management_form }}
+                                {% for form in uniform_payment_form %}
+                                <div class="inline-note">
+                                    {% crispy form %}
+                                </div>
+                                {% endfor  %}
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <input type="button" value="Add Uniform Payment" id="add_pay" class="btn btn-quiet">
+                            </div>
+                            <div id="empty-pay" class="d-none" data-fp-omit>{% crispy uniform_payment_form.empty_form %}</div>
+                        </div>  
+                    </div>
+                </div>
             </div>
-            {% crispy player_form %}
         </section>
 
         <section class="content-card">
@@ -33,7 +62,9 @@
                 <h2 class="section-title">Parent or guardian</h2>
                 <p class="section-subtitle mb-0">Keep the primary family contact attached to the player profile from the first registration.</p>
             </div>
-            {% crispy parent_form %}
+            <div class="row">
+                {% crispy parent_form %}
+            </div>
         </section>
 
         <section class="content-card">
@@ -42,7 +73,7 @@
                 <p class="section-subtitle mb-0">Add one or more payment records. Extra rows can be inserted without leaving the page.</p>
             </div>
 
-            <div id="subscriptions" class="d-grid gap-3">
+            <div id="subscriptions" class="d-grid gap-3 inline-container">
                 {{ subscriptions_form.management_form }}
                 {% for form in subscriptions_form %}
                     <div class="inline-note">
@@ -54,7 +85,7 @@
             <div class="d-flex justify-content-end mt-3">
                 <input type="button" value="Add another subscription" id="add_more" class="btn btn-quiet">
             </div>
-            <div id="empty-sub" class="d-none">{% crispy subscriptions_form.empty_form %}</div>
+            <div id="empty-sub" class="d-none" data-fp-omit>{% crispy subscriptions_form.empty_form %}</div>
         </section>
 
         <div class="d-flex flex-wrap justify-content-end gap-2">
@@ -67,10 +98,55 @@
 
 {% block extra_js %}
 <script>
+    function toggleSubscriptionCondition(selectEl) {
+        var row = selectEl.closest('.row');
+        if (!row) {
+            return;
+        }
+
+        var conditionWrapper = row.querySelector('.js-subscription-condition');
+        var conditionInput = conditionWrapper ? conditionWrapper.querySelector('input, textarea, select') : null;
+        var shouldShow = selectEl.value === '1';
+
+        if (conditionWrapper) {
+            conditionWrapper.classList.toggle('d-none', !shouldShow);
+        }
+
+        if (conditionInput && !shouldShow) {
+            conditionInput.value = '';
+        }
+    }
+
+    function syncSubscriptionConditionFields(container) {
+        container.querySelectorAll('select[name$="-physical_condition"]').forEach(function(selectEl) {
+            toggleSubscriptionCondition(selectEl);
+        });
+    }
+
+    $(document).on('change', 'select[name$="-physical_condition"]', function() {
+        toggleSubscriptionCondition(this);
+    });
+
+    $(function() {
+        syncSubscriptionConditionFields(document);
+        window.initDatePickers(document);
+    });
+
     $('#add_more').click(function() {
         var form_idx = $('#id_subscription_set-TOTAL_FORMS').val();
-        $('#subscriptions').append('<div class="inline-note">' + $('#empty-sub').html().replace(/__prefix__/g, form_idx) + '</div>');
+        var newRow = $('<div class="inline-note">' + $('#empty-sub').html().replace(/__prefix__/g, form_idx) + '</div>');
+        $('#subscriptions').append(newRow);
         $('#id_subscription_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+        syncSubscriptionConditionFields(newRow[0]);
+        window.initDatePickers(newRow[0]);
+    });
+    
+    $('#add_pay').click(function() {
+        var form_idx = $('#id_uniform_payment_set-TOTAL_FORMS').val();
+        var newRow = $('<div class="inline-note">' + $('#empty-pay').html().replace(/__prefix__/g, form_idx) + '</div>');
+        $('#uniformsPay').append(newRow);
+        $('#id_uniform_payment_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+        window.initDatePickers(newRow[0]);
     });
 </script>
 {% endblock extra_js %}

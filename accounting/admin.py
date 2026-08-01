@@ -1,10 +1,6 @@
 from django.contrib import admin
-from .models import Outcoming, Subscription, UniformPayment, Savings
+from .models import Outcoming, Savings
 
 admin.site.register(Outcoming)
-
-admin.site.register(Subscription)
-
-admin.site.register(UniformPayment)
 
 admin.site.register(Savings)

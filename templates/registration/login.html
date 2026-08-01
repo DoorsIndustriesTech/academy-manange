@@ -51,26 +51,26 @@
                 <form method="post" class="d-grid gap-3 mt-4">
                     {% csrf_token %}
 
-                    {% if login_form.non_field_errors %}
-                        <div class="alert-soft">{{ login_form.non_field_errors }}</div>
+                    {% if form.non_field_errors %}
+                        <div class="alert-soft">{{ form.non_field_errors }}</div>
                     {% endif %}
 
                     <div class="row g-3">
                         <div class="col-12">
-                            <label for="{{ login_form.username.id_for_label }}">Username</label>
-                            {{ login_form.username }}
-                            {{ login_form.username.errors }}
+                            <label for="{{ form.username.id_for_label }}">Username</label>
+                            {{ form.username }}
+                            {{ form.username.errors }}
                         </div>
                         <div class="col-12">
-                            <label for="{{ login_form.password.id_for_label }}">Password</label>
-                            {{ login_form.password }}
-                            {{ login_form.password.errors }}
+                            <label for="{{ form.password.id_for_label }}">Password</label>
+                            {{ form.password }}
+                            {{ form.password.errors }}
                         </div>
                     </div>
 
                     <div class="d-flex flex-wrap align-items-center gap-3 mt-2">
                         <button type="submit" class="btn btn-brand">Enter workspace</button>
-                        <a class="auth-link" href="{% url 'registration' %}">Create account</a>
+                        <a class="auth-link" href=" {% url 'register' %}">Create account</a>
                     </div>
                 </form>
             </div>

@@ -21,17 +21,49 @@
         {% csrf_token %}
 
         <section class="content-card">
-            <div class="mb-4">
-                <h2 class="section-title">Player information</h2>
+            <div class="row">
+                <div class="col-xl-6">
+                    <div class="mb-4">
+                        <h2 class="section-title">Player information</h2>
+                        <p class="section-subtitle mb-0">Core profile data for the athlete, including personal details and contact information.</p>
+                    </div>
+                    {% crispy player_form %}
+                </div>
+                <div class="col-xl-6">
+                    <div class="mb-4">
+                        <h2 class="section-title">Uniform information</h2>
+                        <p class="section-subtitle mb-0">Main information to handle the uniform making.</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-xl-12">
+                        {% crispy uniform_form %}
+                        </div>  
+                        <div class="col-xl-12">
+                            <div id="uniformsPay" class="d-grid gap-3 inline-container">
+                                {{ uniform_payment_form.management_form }}
+                                {% for form in uniform_payment_form %}
+                                <div class="inline-note">
+                                    {% crispy form %}
+                                </div>
+                                {% endfor  %}
+                            </div>
+                            <div class="d-flex justify-content-end mt-3">
+                                <input type="button" value="Add Uniform Payment" id="add_pay" class="btn btn-quiet">
+                            </div>
+                            <div id="empty-pay" class="d-none">{% crispy uniform_payment_form.empty_form %}</div>
+                        </div>  
+                    </div>
+                </div>
             </div>
-            {% crispy player_form %}
         </section>
 
         <section class="content-card">
             <div class="mb-4">
                 <h2 class="section-title">Parent or guardian</h2>
             </div>
-            {% crispy parent_form %}
+            <div class="row justify-content-center">
+                {% crispy parent_form %}
+            </div>
         </section>
 
         <div class="d-flex flex-wrap justify-content-end gap-2">
@@ -41,3 +73,13 @@
     </form>
 </section>
 {% endblock content %}
+
+{% block extra_js %}
+<script>    
+    $('#add_pay').click(function() {
+        var form_idx = $('#id_uniform_payment_set-TOTAL_FORMS').val();
+        $('#uniformsPay').append('<div class="inline-note">' + $('#empty-pay').html().replace(/__prefix__/g, form_idx) + '</div>');
+        $('#id_uniform_payment_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+    });
+</script>
+{% endblock extra_js %}
