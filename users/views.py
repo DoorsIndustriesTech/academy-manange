@@ -45,6 +45,7 @@ def get_players_list(request):
     length = 100
     start = 0
     players = Player.objects.all().order_by('created_date')
+    current_month = datetime.now().month
 
     paginator = Paginator(players, length)
     page_number = start // length + 1
@@ -56,7 +57,8 @@ def get_players_list(request):
             'full_name' : player.full_name(),
             'dob' : player.dob,
             'gender' : player.gender,
-            'phone' : player.phone,
+            'phone' : player.phone if player.phone else '---',
+            'status' : 'Remember' if current_month - (Subscription.objects.filter(player=player).latest('pay_date').expiration_date.month if Subscription.objects.filter(player=player) else 0) >= 1 else 'Updated',
             'view' : f'<a class="table-action" href="{reverse("player_detail", args=[player.id])}">Open profile</a>'
         }
         for player in page
@@ -71,37 +73,79 @@ def get_players_list(request):
 
     return JsonResponse(response)
 
+def get_uniform_list(request):
+    draw = 1
+    length = 100
+    start = 0
+    uniforms = Uniform.objects.distinct('player').order_by('player','created_date')
+
+    paginator = Paginator(uniforms, length)
+    page_number = start // length + 1
+    page = paginator.get_page(page_number)
+
+    data = [
+        {
+            'id' : uniform.id,
+            'player_name' : uniform.player.full_name(),
+            'name' : uniform.name,
+            'size' : uniform.size,
+            'payments' : list(UniformPayment.objects.filter(uniform=uniform).amount)
+        }
+        for uniform in page
+    ]
+
+    response = {
+        "draw" : draw,
+        "length" : length,
+        "total_uniforms" : uniforms.count(),
+        "data"  : data
+    }
+
+    return JsonResponse(response)
+
 @login_required
 def register_player(request, template='players/new_form.html'):
     subscriptions_inline = inlineformset_factory(Player, Subscription, form=SubscriptionForm, extra=1)
     uniform_pay_inline = inlineformset_factory(Uniform, UniformPayment, form=UniformPaymentForm, extra=1)
     if request.method == 'POST':
-        player_form = PlayerForm(request.POST)
+        player_form = PlayerForm(request.POST, date_picker_mode='custom')
         uniform_form = UniformForm(request.POST)
-        uniform_payment_form = uniform_pay_inline(request.POST)
+        uniform_payment_form = uniform_pay_inline(
+            request.POST,
+            prefix='up',
+            form_kwargs={'date_picker_mode': 'custom'},
+        )
         parent_form = ParentForm(request.POST,prefix='parent')
-        subscriptions_form = subscriptions_inline(request.POST)
+        subscriptions_form = subscriptions_inline(
+            request.POST,
+            prefix='sp',
+            form_kwargs={'date_picker_mode': 'custom'},
+        )
         if player_form.is_valid() and parent_form.is_valid() and subscriptions_form.is_valid() and uniform_form.is_valid() and uniform_payment_form.is_valid():
             player = player_form.save(commit=False)
             player.school = request.user.school
+            player.created_by = request.user
             player.save()
 
             uniform = uniform_form.save(commit=False)
             uniform.player = player
+            uniform.created_by = request.user
             uniform.save()
 
             un_payments = uniform_payment_form.save(commit=False)
-            for up in uniform_payment_form.deleted_objects:
-                up.delete()
-
             for up in un_payments:
                 up.uniform = uniform
+                up.created_by = request.user
                 up.save()
+
+            for up in uniform_payment_form.deleted_objects:
+                up.delete()
 
             uniform_payment_form.save_m2m()
             
             parent = parent_form.save(commit=False)
             parent.player = player
+            parent.created_by = request.user
             parent.save()
 
             subscriptions = subscriptions_form.save(commit=False)
@@ -110,17 +154,26 @@ def register_player(request, template='players/new_form.html'):
 
             for subscription in subscriptions:
                 subscription.player = player
+                subscription.created_by = request.user
                 subscription.save()
             
             subscriptions_form.save_m2m()
 
             return redirect('player_detail', id=player.id)
+        else:
+            print("ERRORS:", subscriptions_form.errors)
     else:
-        player_form = PlayerForm()
+        player_form = PlayerForm(date_picker_mode='custom')
         parent_form = ParentForm(prefix='parent')
         uniform_form = UniformForm()
-        uniform_payment_form = uniform_pay_inline()
-        subscriptions_form = subscriptions_inline()
+        uniform_payment_form = uniform_pay_inline(
+            prefix='up',
+            form_kwargs={'date_picker_mode': 'custom'},
+        )
+        subscriptions_form = subscriptions_inline(
+            prefix='sp',
+            form_kwargs={'date_picker_mode': 'custom'},
+        )
 
     return render(request, template, locals())
 
@@ -132,15 +185,23 @@ def players_list(request, template='players/list.html'):
     return render(request, template, locals())
 
 @login_required
+def uniforms_list(request, template='players/uniforms_list.html'):
+
+    uniforms = Uniform.objects.all()
+    uniform_payments = UniformPayment.objects.filter(uniform__in=uniforms)
+
+    return render(request, template, locals())
+
+@login_required
 def player_detail(request, template='players/detail.html', id=None):
     current_date = datetime.now().date()
     player = Player.objects.get(id=id)
-    parent = Parent.objects.filter(player_id=player)
-    pay_months = Subscription.objects.filter(player_id=player).values_list(
+    parent = Parent.objects.filter(player=player)
+    pay_months = Subscription.objects.filter(player=player).values_list(
         'pay_date__month', flat=True
     ).distinct().order_by('pay_date__month')
     subscriptions = [calendar.month_name[month] for month in pay_months]
-    due_date = Subscription.objects.filter(player_id=player).latest('expiration_date').expiration_date
+    due_date = Subscription.objects.filter(player=player).latest('expiration_date').expiration_date
     if current_date >= due_date:
         subscription_status = 'Remember'
     else:
@@ -151,6 +212,7 @@ def player_detail(request, template='players/detail.html', id=None):
 
         subscription = subscription_form.save(commit=False)
         subscription.player_id = player
+        subscription.created_by = request.user
         subscription.save()
     else:
         subscription_form = SubscriptionForm()
@@ -163,11 +225,12 @@ def edit_player(request, id=None,template='players/edit_form.html'):
     uniform = Uniform.objects.filter(player=object).first()
     uniform_pay = UniformPayment.objects.filter(uniform=uniform).first()
     uniform_pay_inline = inlineformset_factory(Uniform, UniformPayment, form=UniformPaymentForm, extra=1)
+    uniform_payments_prefix = 'uniformpayment_set'
     if request.method == 'POST':
         player_form = PlayerForm(request.POST,instance=object)
         parent_form = ParentForm(request.POST,instance=parent,prefix='parent')
         uniform_form = UniformForm(request.POST,instance=uniform)
-        uniform_payment_form = uniform_pay_inline(request.POST,instance=uniform_pay)
+        uniform_payment_form = uniform_pay_inline(request.POST,instance=uniform_pay,prefix=uniform_payments_prefix)
         if player_form.is_valid() and parent_form.is_valid() and uniform_form.is_valid() and uniform_payment_form.is_valid():
             player = player_form.save(commit=False)
             player.save()
@@ -189,6 +252,6 @@ def edit_player(request, id=None,template='players/edit_form.html'):
         player_form = PlayerForm(instance=object)
         parent_form = ParentForm(instance=parent,prefix='parent')
         uniform_form = UniformForm(instance=object)
-        uniform_payment_form = uniform_pay_inline(instance=uniform)
+        uniform_payment_form = uniform_pay_inline(instance=uniform,prefix=uniform_payments_prefix)
     
     return render(request, template, locals())

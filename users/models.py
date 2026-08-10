@@ -13,6 +13,7 @@ class School(models.Model):
     logo = models.ImageField(upload_to='logos',null=True,blank=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True,blank=True)
+    created_date = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.name
@@ -28,7 +29,7 @@ class User(AbstractUser):
     
     class Meta(object):
         unique_together = ('email',)
-
+    
 class Player(models.Model):
     id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
     school = models.ForeignKey(School, on_delete=models.PROTECT,null=True,blank=True)
@@ -41,6 +42,7 @@ class Player(models.Model):
     phone = models.CharField(max_length=10,null=True,blank=True)
     height = models.FloatField(null=True, blank=True)
     created_date = models.DateField(auto_now_add=True)
+    created_by = models.ForeignKey(User,on_delete=models.PROTECT)
     def full_name(self):
         if self.secondary_name or self.second_last_name:
             return "%s %s %s %s" % (self.primary_name, self.secondary_name, self.first_last_name, self.second_last_name)
@@ -61,6 +63,8 @@ class Parent(models.Model):
     first_last_name = models.CharField(max_length=50,null=True,blank=True)
     second_last_name = models.CharField(max_length=50, blank=True, null=True)
     phone = models.CharField(max_length=10,null=True,blank=True)
+    created_date = models.DateField(auto_now_add=True)
+    created_by = models.ForeignKey(User,on_delete=models.PROTECT)
 
     def full_name(self):
         if self.secondary_name or self.second_last_name:

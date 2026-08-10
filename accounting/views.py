@@ -120,7 +120,7 @@ def update_subscription(request, id=None):
     if request.method != 'POST':
         return redirect('player_detail', id=id)
 
-    latest_sub = Subscription.objects.filter(player_=id).latest('pay_date')
+    latest_sub = Subscription.objects.filter(player=id).latest('pay_date')
     current_month = datetime.now().month
     if current_month - latest_sub.expiration_date.month >= 1:
         subscrption = Subscription.objects.create(

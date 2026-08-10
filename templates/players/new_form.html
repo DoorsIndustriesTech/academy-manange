@@ -1,5 +1,6 @@
 {% extends "index.html" %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block title %}Register Player | Targets Database{% endblock title %}
 
@@ -17,7 +18,7 @@
         </div>
     </header>
 
-    <form method="post" class="d-grid gap-4 mt-4">
+    <form method="post" class="d-grid gap-4 mt-4" novalidate>
         {% csrf_token %}
 
         <section class="content-card">
@@ -50,7 +51,7 @@
                             <div class="d-flex justify-content-end mt-3">
                                 <input type="button" value="Add Uniform Payment" id="add_pay" class="btn btn-quiet">
                             </div>
-                            <div id="empty-pay" class="d-none" data-fp-omit>{% crispy uniform_payment_form.empty_form %}</div>
+                            <div id="empty-pay" class="d-none">{% crispy uniform_payment_form.empty_form %}</div>
                         </div>  
                     </div>
                 </div>
@@ -85,7 +86,7 @@
             <div class="d-flex justify-content-end mt-3">
                 <input type="button" value="Add another subscription" id="add_more" class="btn btn-quiet">
             </div>
-            <div id="empty-sub" class="d-none" data-fp-omit>{% crispy subscriptions_form.empty_form %}</div>
+            <div id="empty-sub" class="d-none">{% crispy subscriptions_form.empty_form %}</div>
         </section>
 
         <div class="d-flex flex-wrap justify-content-end gap-2">
@@ -96,8 +97,136 @@
 </section>
 {% endblock content %}
 
+{% block extra_css %}
+<style>
+    .register-date-picker {
+        position: fixed;
+        z-index: 1060;
+        width: min(320px, calc(100vw - 1.5rem));
+        border: 1px solid rgba(17, 24, 39, 0.12);
+        border-radius: 1rem;
+        background: #fff;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.18);
+        overflow: hidden;
+    }
+
+    .register-date-picker__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .5rem;
+        padding: .85rem .9rem;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        color: #fff;
+    }
+
+    .register-date-picker__header button {
+        width: 2rem;
+        height: 2rem;
+        border: 0;
+        border-radius: .6rem;
+        background: rgba(255, 255, 255, 0.12);
+        color: inherit;
+    }
+
+    .register-date-picker__header button:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .register-date-picker__title {
+        font-size: .95rem;
+        font-weight: 700;
+        letter-spacing: .01em;
+        margin: 0;
+        text-align: center;
+        flex: 1;
+    }
+
+    .register-date-picker__weekdays,
+    .register-date-picker__days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+    }
+
+    .register-date-picker__weekdays {
+        padding: .65rem .85rem .25rem;
+        color: #64748b;
+        font-size: .72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .08em;
+    }
+
+    .register-date-picker__weekdays span {
+        text-align: center;
+    }
+
+    .register-date-picker__days {
+        padding: .25rem .6rem .7rem;
+        gap: .15rem;
+    }
+
+    .register-date-picker__day {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        border-radius: .75rem;
+        height: 2.35rem;
+        color: #0f172a;
+        font-weight: 600;
+    }
+
+    .register-date-picker__day:hover {
+        background: #e2e8f0;
+    }
+
+    .register-date-picker__day.is-muted {
+        color: #94a3b8;
+        font-weight: 500;
+    }
+
+    .register-date-picker__day.is-selected {
+        background: #0f172a;
+        color: #fff;
+    }
+
+    .register-date-picker__day.is-today {
+        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.18);
+    }
+
+    .register-date-picker__empty {
+        height: 2.35rem;
+    }
+
+    .register-date-picker__footer {
+        display: flex;
+        justify-content: space-between;
+        gap: .5rem;
+        padding: 0 .85rem .85rem;
+    }
+
+    .register-date-picker__footer button {
+        border: 0;
+        background: #f1f5f9;
+        color: #0f172a;
+        border-radius: .7rem;
+        padding: .45rem .8rem;
+        font-size: .88rem;
+        font-weight: 600;
+    }
+
+    .register-date-picker__footer button:hover {
+        background: #e2e8f0;
+    }
+</style>
+{% endblock extra_css %}
+
 {% block extra_js %}
+<script src="{% static 'js/django-inline-form.js' %}"></script>
 <script>
+    var subscriptionPrefix = "{{ subscriptions_form.prefix }}";
+    var uniformPaymentPrefix = "{{ uniform_payment_form.prefix }}";
+
     function toggleSubscriptionCondition(selectEl) {
         var row = selectEl.closest('.row');
         if (!row) {
@@ -129,24 +258,299 @@
 
     $(function() {
         syncSubscriptionConditionFields(document);
-        window.initDatePickers(document);
     });
 
     $('#add_more').click(function() {
-        var form_idx = $('#id_subscription_set-TOTAL_FORMS').val();
+        var totalFormsId = '#id_' + subscriptionPrefix + '-TOTAL_FORMS';
+        var form_idx = $(totalFormsId).val();
         var newRow = $('<div class="inline-note">' + $('#empty-sub').html().replace(/__prefix__/g, form_idx) + '</div>');
         $('#subscriptions').append(newRow);
-        $('#id_subscription_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+        $(totalFormsId).val(parseInt(form_idx, 10) + 1);
         syncSubscriptionConditionFields(newRow[0]);
-        window.initDatePickers(newRow[0]);
     });
-    
+
     $('#add_pay').click(function() {
-        var form_idx = $('#id_uniform_payment_set-TOTAL_FORMS').val();
+        var totalFormsId = '#id_' + uniformPaymentPrefix + '-TOTAL_FORMS';
+        var form_idx = $(totalFormsId).val();
         var newRow = $('<div class="inline-note">' + $('#empty-pay').html().replace(/__prefix__/g, form_idx) + '</div>');
         $('#uniformsPay').append(newRow);
-        $('#id_uniform_payment_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
-        window.initDatePickers(newRow[0]);
+        $(totalFormsId).val(parseInt(form_idx, 10) + 1);
     });
+
+    (function() {
+        var picker;
+        var activeInput = null;
+        var viewDate = new Date();
+        var dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        var monthLabels = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+
+        function pad(value) {
+            return String(value).padStart(2, '0');
+        }
+
+        function formatIso(date) {
+            return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+        }
+
+        function parseIso(value) {
+            if (!value || typeof value !== 'string') {
+                return null;
+            }
+
+            var parts = value.split('-');
+            if (parts.length !== 3) {
+                return null;
+            }
+
+            var year = parseInt(parts[0], 10);
+            var month = parseInt(parts[1], 10) - 1;
+            var day = parseInt(parts[2], 10);
+            var date = new Date(year, month, day);
+
+            if (date.getFullYear() !== year || date.getMonth() !== month || date.getDate() !== day) {
+                return null;
+            }
+
+            return date;
+        }
+
+        function startOfMonth(date) {
+            return new Date(date.getFullYear(), date.getMonth(), 1);
+        }
+
+        function sameDate(a, b) {
+            return a && b &&
+                a.getFullYear() === b.getFullYear() &&
+                a.getMonth() === b.getMonth() &&
+                a.getDate() === b.getDate();
+        }
+
+        function ensurePicker() {
+            if (picker) {
+                return picker;
+            }
+
+            picker = document.createElement('div');
+            picker.id = 'register-date-picker';
+            picker.className = 'register-date-picker d-none';
+            picker.setAttribute('role', 'dialog');
+            picker.setAttribute('aria-label', 'Date picker');
+            picker.innerHTML = [
+                '<div class="register-date-picker__header">',
+                '  <button type="button" data-action="prev" aria-label="Previous month">&lsaquo;</button>',
+                '  <p class="register-date-picker__title" data-role="title"></p>',
+                '  <button type="button" data-action="next" aria-label="Next month">&rsaquo;</button>',
+                '</div>',
+                '<div class="register-date-picker__weekdays" data-role="weekdays"></div>',
+                '<div class="register-date-picker__days" data-role="days"></div>',
+                '<div class="register-date-picker__footer">',
+                '  <button type="button" data-action="today">Today</button>',
+                '  <button type="button" data-action="clear">Clear</button>',
+                '</div>'
+            ].join('');
+            document.body.appendChild(picker);
+
+            picker.addEventListener('click', function(event) {
+                var actionButton = event.target.closest('button[data-action]');
+                var dayButton = event.target.closest('button[data-date]');
+
+                if (actionButton) {
+                    event.preventDefault();
+                    handleAction(actionButton.getAttribute('data-action'));
+                    return;
+                }
+
+                if (dayButton) {
+                    event.preventDefault();
+                    selectDate(parseIso(dayButton.getAttribute('data-date')));
+                }
+            });
+
+            return picker;
+        }
+
+        function updateWeekdays() {
+            var weekdays = picker.querySelector('[data-role="weekdays"]');
+            weekdays.innerHTML = dayLabels.map(function(label) {
+                return '<span>' + label + '</span>';
+            }).join('');
+        }
+
+        function render() {
+            var title = picker.querySelector('[data-role="title"]');
+            var days = picker.querySelector('[data-role="days"]');
+            var firstDay = startOfMonth(viewDate);
+            var startOffset = firstDay.getDay();
+            var gridStart = new Date(firstDay);
+            gridStart.setDate(firstDay.getDate() - startOffset);
+            var today = new Date();
+            var selectedDate = parseIso(activeInput ? activeInput.value : '');
+            var cells = [];
+            var current = new Date(gridStart);
+
+            title.textContent = monthLabels[viewDate.getMonth()] + ' ' + viewDate.getFullYear();
+
+            for (var i = 0; i < 42; i += 1) {
+                var inMonth = current.getMonth() === viewDate.getMonth();
+                var classes = ['register-date-picker__day'];
+
+                if (!inMonth) {
+                    classes.push('is-muted');
+                }
+
+                if (selectedDate && sameDate(current, selectedDate)) {
+                    classes.push('is-selected');
+                }
+
+                if (sameDate(current, today)) {
+                    classes.push('is-today');
+                }
+
+                cells.push(
+                    '<button type="button" class="' + classes.join(' ') + '" data-date="' + formatIso(current) + '">' +
+                        current.getDate() +
+                    '</button>'
+                );
+
+                current.setDate(current.getDate() + 1);
+            }
+
+            days.innerHTML = cells.join('');
+        }
+
+        function positionPicker() {
+            if (!activeInput) {
+                return;
+            }
+
+            var rect = activeInput.getBoundingClientRect();
+            var pickerRect = picker.getBoundingClientRect();
+            var top = rect.bottom + 8;
+            var left = rect.left;
+
+            if (left + pickerRect.width > window.innerWidth - 12) {
+                left = window.innerWidth - pickerRect.width - 12;
+            }
+
+            if (left < 12) {
+                left = 12;
+            }
+
+            if (top + pickerRect.height > window.innerHeight - 12) {
+                top = rect.top - pickerRect.height - 8;
+            }
+
+            picker.style.left = left + 'px';
+            picker.style.top = top + 'px';
+        }
+
+        function openPicker(input) {
+            picker = ensurePicker();
+            activeInput = input;
+
+            var parsed = parseIso(input.value);
+            viewDate = startOfMonth(parsed || new Date());
+            updateWeekdays();
+            render();
+            picker.classList.remove('d-none');
+            positionPicker();
+        }
+
+        function closePicker() {
+            if (picker) {
+                picker.classList.add('d-none');
+            }
+            activeInput = null;
+        }
+
+        function selectDate(date) {
+            if (!activeInput || !date) {
+                return;
+            }
+
+            activeInput.value = formatIso(date);
+            activeInput.dispatchEvent(new Event('input', { bubbles: true }));
+            activeInput.dispatchEvent(new Event('change', { bubbles: true }));
+            closePicker();
+        }
+
+        function handleAction(action) {
+            if (action === 'prev') {
+                viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
+                render();
+                positionPicker();
+                return;
+            }
+
+            if (action === 'next') {
+                viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+                render();
+                positionPicker();
+                return;
+            }
+
+            if (action === 'today') {
+                var today = new Date();
+                viewDate = startOfMonth(today);
+                render();
+                positionPicker();
+                selectDate(today);
+                return;
+            }
+
+            if (action === 'clear' && activeInput) {
+                activeInput.value = '';
+                activeInput.dispatchEvent(new Event('input', { bubbles: true }));
+                activeInput.dispatchEvent(new Event('change', { bubbles: true }));
+                closePicker();
+            }
+        }
+
+        document.addEventListener('focusin', function(event) {
+            if (event.target.matches('.js-register-date-picker')) {
+                openPicker(event.target);
+            }
+        });
+
+        document.addEventListener('click', function(event) {
+            var target = event.target;
+
+            if (target.closest('.register-date-picker')) {
+                return;
+            }
+
+            if (target.matches('.js-register-date-picker')) {
+                openPicker(target);
+                return;
+            }
+
+            if (!target.closest('.register-date-picker') && (!activeInput || !target.closest('.js-register-date-picker'))) {
+                closePicker();
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closePicker();
+            }
+        });
+
+        window.addEventListener('resize', function() {
+            if (!picker || picker.classList.contains('d-none')) {
+                return;
+            }
+
+            positionPicker();
+        });
+
+        window.addEventListener('scroll', function() {
+            if (!picker || picker.classList.contains('d-none')) {
+                return;
+            }
+
+            positionPicker();
+        }, true);
+    })();
 </script>
 {% endblock extra_js %}

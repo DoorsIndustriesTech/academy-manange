@@ -1,7 +1,7 @@
 from django.db import models
 from uuid import uuid4
 from uniforms.models import Uniform
-from users.models import Player, School
+from users.models import Player, School, User
 from dateutil.relativedelta import relativedelta
 
 class Outcoming(models.Model):
@@ -10,6 +10,8 @@ class Outcoming(models.Model):
     description = models.TextField(max_length=260,null=True,blank=True)
     amount = models.CharField(max_length=10,null=True,blank=True)
     date = models.DateField(null=True,blank=True)
+    created_date = models.DateField(auto_now=True)
+    created_by = models.ForeignKey(User,on_delete=models.PROTECT)
 
 PAYMENT_METHODS = ((0,'Digital'),(1,'Cash'))
 
@@ -19,6 +21,8 @@ class UniformPayment(models.Model):
     amount = models.CharField(max_length=7,null=True,blank=True)
     payment_method = models.IntegerField(choices=PAYMENT_METHODS,null=True,blank=True)
     pay_date = models.DateField(null=True,blank=True)
+    created_date = models.DateField(auto_now=True)
+    created_by = models.ForeignKey(User,on_delete=models.PROTECT)
 
 PHYSICAL_CONDITION_CHOICES = ((0, 'Good'), (1, 'Other'))
 
@@ -31,6 +35,8 @@ class Subscription(models.Model):
     ammount = models.CharField(max_length=10,null=True,blank=True)
     pay_date = models.DateField(null=True,blank=True)
     expiration_date = models.DateField(null=True,blank=True)
+    created_date = models.DateField(auto_now=True)
+    created_by = models.ForeignKey(User,on_delete=models.PROTECT)
 
     def save(self, *args, **kwargs):
         if self.pay_date and not self.single_class:
@@ -45,3 +51,5 @@ class Savings(models.Model):
     school = models.ForeignKey(School,on_delete=models.PROTECT,null=True,blank=True)
     date = models.DateField(null=True,blank=True)
     ammount = models.CharField(max_length=7, null=True, blank=True)
+    created_date = models.DateField(auto_now=True)
+    created_by = models.ForeignKey(User,on_delete=models.PROTECT)

@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="{% static 'libs/bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'libs/datatables/datatables.min.css' %}">
     <link rel="stylesheet" href="{% static 'libs/datatables/responsive.datatables.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/flatpickr.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/main-styles.css' %}">
     {% block extra_css %}{% endblock extra_css %}
 </head>
@@ -22,6 +21,9 @@
                     <nav class="header-nav d-flex flex-wrap align-items-center justify-content-center gap-2" aria-label="Primary navigation">
                         <a class="header-nav__link {% if request.resolver_match.url_name == 'players_list' or request.resolver_match.url_name == 'player_detail' %}is-active{% endif %}" href="{% url 'players_list' %}">
                             Roster Hub
+                        </a>
+                        <a class="header-nav__link {% if request.resolver_match.url_name == 'uniforms_list' %}is-active{% endif %}" href="{% url 'uniforms_list' %}">
+                            Uniforms
                         </a>
                         <a class="header-nav__link {% if request.resolver_match.url_name == 'accounting_dashboard' %}is-active{% endif %}" href="{% url 'accounting_dashboard' %}">
                             Accounting
@@ -48,41 +50,6 @@
     <script src="{% static 'libs/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'libs/datatables/datatables.min.js' %}"></script>
     <script src="{% static 'libs/datatables/datatables.responsive.min.js' %}"></script>
-    <script src="{% static 'js/flatpickr.min.js' %}"></script>
-    <script>
-        window.initDatePickers = function (root) {
-            if (typeof flatpickr !== 'function') {
-                return;
-            }
-
-            var scope = root || document;
-
-            scope.querySelectorAll('.js-date-input').forEach(function (input) {
-                if (input._flatpickr || input.closest('[data-fp-omit]')) {
-                    return;
-                }
-
-                flatpickr(input, {
-                    altInput: true,
-                    altFormat: 'F j, Y',
-                    dateFormat: 'Y-m-d',
-                    disableMobile: true,
-                    monthSelectorType: 'static',
-                    nextArrow: "<span aria-hidden='true'>&rsaquo;</span>",
-                    prevArrow: "<span aria-hidden='true'>&lsaquo;</span>",
-                    onReady: function(selectedDates, dateStr, instance) {
-                        if (instance.altInput) {
-                            instance.altInput.setAttribute('placeholder', instance.input.getAttribute('placeholder') || 'Select date');
-                        }
-                    }
-                });
-            });
-        };
-
-        document.addEventListener('DOMContentLoaded', function () {
-            window.initDatePickers(document);
-        });
-    </script>
     {% block extra_js %}{% endblock extra_js %}
 </body>
 </html>

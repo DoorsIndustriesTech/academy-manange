@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import Player
+from users.models import Player,User
 from uuid import uuid4
 
 class Uniform(models.Model):
@@ -8,3 +8,5 @@ class Uniform(models.Model):
     name = models.CharField(max_length=20,null=True,blank=True)
     number = models.IntegerField(null=True,blank=True)
     size = models.CharField(max_length=10,null=True,blank=True)
+    created_date = models.DateField(auto_now=True)
+    created_by = models.ForeignKey(User,on_delete=models.PROTECT)

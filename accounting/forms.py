@@ -4,25 +4,41 @@ from crispy_forms.layout import Layout, Div, Row
 from accounting.models import Subscription, Outcoming, Savings
 
 
-def build_date_picker_widget(placeholder):
-    return forms.DateInput(
-        attrs={
-            "class": "js-date-input",
+def build_date_picker_widget(placeholder, custom=False):
+    attrs = {
+        "autocomplete": "off",
+    }
+
+    if custom:
+        attrs.update({
+            "class": "js-register-date-picker",
             "placeholder": placeholder,
-            "autocomplete": "off",
-            "data-flatpickr-alt-format": "F j, Y",
-        }
-    )
+            "inputmode": "none",
+            "readonly": "readonly",
+            "data-date-picker": "custom",
+        })
+        return forms.TextInput(attrs=attrs)
+
+    attrs["type"] = "date"
+    return forms.DateInput(format="%Y-%m-%d", attrs=attrs)
 
 class SubscriptionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        date_picker_mode = kwargs.pop("date_picker_mode", "native")
         super().__init__(*args,**kwargs)
+
+        self.fields['physical_condition'].required = True
+        self.fields['ammount'].required = True
+        self.fields['pay_date'].required = True
 
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.render_hidden_fields = True
         if "pay_date" in self.fields:
-            self.fields["pay_date"].widget = build_date_picker_widget("Select payment date")
+            self.fields["pay_date"].widget = build_date_picker_widget(
+                "Select payment date",
+                custom=date_picker_mode == "custom",
+            )
 
         self.helper.layout = Layout(
             Row(
@@ -47,11 +63,15 @@ class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Subscription
         fields = '__all__'
-        exclude = ('player_id', 'expiration_date')
+        exclude = ('player_id', 'expiration_date', 'created_by', 'created_date')
 
 class OutcomingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.fields['description'].required = True
+        self.fields['amount'].required = True
+        self.fields['date'].required = True
 
         self.helper = FormHelper()
         self.helper.form_tag = False
@@ -71,11 +91,14 @@ class OutcomingForm(forms.ModelForm):
     class Meta:
         model = Outcoming
         fields = '__all__'
-        exclude = ['school',]
+        exclude = ['school','created_date','created_by']
 
 class SavingsForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.fields['date'].required = True
+        self.fields['ammount'].required = True
 
         self.helper = FormHelper()
         self.helper.form_tag = False
@@ -85,11 +108,12 @@ class SavingsForm(forms.ModelForm):
 
         self.helper.layout = Layout(
             Row(
-
+                Div('date',css_class='col-xl-6'),
+                Div('ammount',css_class='col-xl-6'),
             )
         )
     
     class Meta:
         model = Savings
         fields = '__all__'
-        exclude = ['school',]
+        exclude = ['school','created_by','created_date']

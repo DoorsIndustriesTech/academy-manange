@@ -17,7 +17,7 @@
         </div>
     </header>
 
-    <form method="post" class="d-grid gap-4 mt-4">
+    <form method="post" class="d-grid gap-4 mt-4" novalidate>
         {% csrf_token %}
 
         <section class="content-card">
@@ -77,9 +77,9 @@
 {% block extra_js %}
 <script>    
     $('#add_pay').click(function() {
-        var form_idx = $('#id_uniform_payment_set-TOTAL_FORMS').val();
+        var form_idx = $('#id_uniformpayment_set-TOTAL_FORMS').val();
         $('#uniformsPay').append('<div class="inline-note">' + $('#empty-pay').html().replace(/__prefix__/g, form_idx) + '</div>');
-        $('#id_uniform_payment_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
+        $('#id_uniformpayment_set-TOTAL_FORMS').val(parseInt(form_idx) + 1);
     });
 </script>
 {% endblock extra_js %}

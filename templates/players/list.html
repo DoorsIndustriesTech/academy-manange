@@ -40,6 +40,7 @@
                         <th>Date of Birth</th>
                         <th>Gender</th>
                         <th>Phone</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -71,6 +72,16 @@
                 }
             },
             { data:'phone' },
+            { 
+                data:'status',
+                render : function(data) {
+                    if (data === 'Updated') {
+                        return `<span class="status-pill">${data}</span>`
+                    } else {
+                        return `<span class="status-pill status-pill--warning">${data}</span>`
+                    }
+                } 
+            },
             { data:'view' }
         ]
     })
