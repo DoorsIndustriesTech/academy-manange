@@ -19,7 +19,7 @@
     <div class="row g-3 my-4">
         <div class="col-md-4">
             <article class="metric-card h-100">
-                <strong>{{ uniforms|length }}</strong>
+                <strong>{{ total_uniforms }}</strong>
                 <span>Registered Uniforms Payments</span>
             </article>
         </div>
@@ -40,8 +40,8 @@
                         <th>Uniform Name</th>
                         <th>Number</th>
                         <th>Size</th>
-                        <th>Status</th>
-                        <!-- <th>Actions</th> -->
+                        <th>Payments</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
             </table>
@@ -66,11 +66,16 @@
             { 
                 data:'payments', 
                 render : function(data) {
-                    for (pay in data) {
-                        console.log(pay)
+                    if (!data || !data.length) {
+                        return '-';
                     }
+
+                    return data.map(function(payment) {
+                        return `<span class="tag-chip">$${Intl.NumberFormat().format(payment)}</span>`;
+                    }).join(', ');
                 }
-            }
+            },
+            { data:'view'}
         ]
     })
 </script>

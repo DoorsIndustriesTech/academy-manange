@@ -88,8 +88,12 @@ def get_uniform_list(request):
             'id' : uniform.id,
             'player_name' : uniform.player.full_name(),
             'name' : uniform.name,
+            'number' : uniform.number,
             'size' : uniform.size,
-            'payments' : list(UniformPayment.objects.filter(uniform=uniform).amount)
+            'payments' : list(
+                UniformPayment.objects.filter(uniform=uniform).values_list('amount', flat=True)
+            ),
+            'view' : f'<a class="table-action" href="{reverse("player_detail", args=[uniform.player.id])}">Open profile</a>'
         }
         for uniform in page
     ]
@@ -189,6 +193,7 @@ def uniforms_list(request, template='players/uniforms_list.html'):
 
     uniforms = Uniform.objects.all()
     uniform_payments = UniformPayment.objects.filter(uniform__in=uniforms)
+    total_uniforms = uniforms.distinct('player').count()
 
     return render(request, template, locals())
 
@@ -197,25 +202,57 @@ def player_detail(request, template='players/detail.html', id=None):
     current_date = datetime.now().date()
     player = Player.objects.get(id=id)
     parent = Parent.objects.filter(player=player)
+    uniforms = Uniform.objects.filter(player=player).prefetch_related('uniformpayment_set').order_by('-created_date')
+    uniform_pay_inline = inlineformset_factory(Uniform, UniformPayment, form=UniformPaymentForm, extra=1)
+    uniform_payments_prefix = 'uniformpayment_set'
+
     pay_months = Subscription.objects.filter(player=player).values_list(
         'pay_date__month', flat=True
     ).distinct().order_by('pay_date__month')
     subscriptions = [calendar.month_name[month] for month in pay_months]
-    due_date = Subscription.objects.filter(player=player).latest('expiration_date').expiration_date
-    if current_date >= due_date:
-        subscription_status = 'Remember'
+    latest_subscription = Subscription.objects.filter(player=player).order_by('-expiration_date').first()
+    if latest_subscription and latest_subscription.expiration_date:
+        due_date = latest_subscription.expiration_date
+        if current_date >= due_date:
+            subscription_status = 'Remember'
+        else:
+            subscription_status = 'Updated'
     else:
         subscription_status = 'Updated'
     
     if request.method == 'POST':
-        subscription_form = SubscriptionForm(request.POST)
+        uniform_form = UniformForm(request.POST)
+        up_form = uniform_pay_inline(
+            request.POST,
+            prefix=uniform_payments_prefix,
+            form_kwargs={'date_picker_mode': 'custom'},
+        )
+        uniform_valid = uniform_form.is_valid()
+        payments_valid = up_form.is_valid()
+        if uniform_valid and payments_valid:
+            uniform = uniform_form.save(commit=False)
+            uniform.player = player
+            uniform.created_by = request.user
+            uniform.save()
 
-        subscription = subscription_form.save(commit=False)
-        subscription.player_id = player
-        subscription.created_by = request.user
-        subscription.save()
+            upays = up_form.save(commit=False)
+            for up in upays:
+                up.uniform = uniform
+                up.created_by = request.user
+                up.save()
+
+            up_form.save_m2m()
+
+            return redirect('player_detail', id=player.id)
     else:
-        subscription_form = SubscriptionForm()
+        uniform_form = UniformForm()
+        up_form = uniform_pay_inline(
+            prefix=uniform_payments_prefix,
+            form_kwargs={'date_picker_mode': 'custom'},
+        )
+
+    show_uniform_modal = request.method == 'POST' and (not uniform_form.is_valid() or not up_form.is_valid())
+
     return render(request, template, locals())
 
 @login_required
