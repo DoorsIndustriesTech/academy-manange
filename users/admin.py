@@ -15,7 +15,7 @@ class SubscriptionInline(admin.TabularInline):
 class PlayerResource(resources.ModelResource):
     class Meta:
         model = Player
-        fields = ('id', 'primary_name', 'secondary_name', 'first_last_name', 'second_last_name', 'dob', 'gender', 'phone')
+        fields = ('id', 'primary_name', 'secondary_name', 'first_last_name', 'second_last_name', 'dob', 'gender', 'phone','height','created_by')
 
 @admin.register(Player)
 class PlayerAdmin(ImportExportModelAdmin):

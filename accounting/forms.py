@@ -1,7 +1,7 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, Row
-from accounting.models import Subscription, Outcoming, Savings
+from accounting.models import Subscription, Outcoming, Savings, OrderPayment, UniformOrder
 
 
 def build_date_picker_widget(placeholder, custom=False):
@@ -117,3 +117,56 @@ class SavingsForm(forms.ModelForm):
         model = Savings
         fields = '__all__'
         exclude = ['school','created_by','created_date']
+
+
+class OrderForm(forms.ModelForm):
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+
+        self.fields['description'].required = True
+
+        self.helper = FormHelper()
+        self.helper.render_hidden_fields = True
+        self.helper.form_tag = False
+        self.fields['description'].widget = forms.Textarea(attrs={'rows': 3})
+
+        self.helper.layout = Layout(
+            Div('description', css_class='col-12'),
+        )
+
+    class Meta:
+        model = UniformOrder
+        fields = ['description']
+
+class OrderPaymentForm(forms.ModelForm):
+    class Meta:
+        model = OrderPayment
+        fields = ['amount', 'pay_date']
+
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+
+        self.fields['amount'].required = True
+        self.fields['pay_date'].required = True
+
+        self.helper = FormHelper()
+        self.helper.render_hidden_fields = True
+        self.helper.form_tag = False
+        self.fields['pay_date'].widget = build_date_picker_widget("Select payment date")
+
+        self.helper.layout = Layout(
+            Row(
+                Div('amount', css_class='col-md-6'),
+                Div('pay_date', css_class='col-md-6'),
+            ),
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        amount = cleaned_data.get('amount')
+        pay_date = cleaned_data.get('pay_date')
+
+        if bool(amount) ^ bool(pay_date):
+            raise forms.ValidationError('Amount and pay date must be provided together.')
+
+        return cleaned_data

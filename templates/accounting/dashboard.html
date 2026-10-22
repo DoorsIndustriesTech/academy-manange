@@ -1,4 +1,5 @@
 {% extends "index.html" %}
+{% load crispy_forms_tags %}
 {% load humanize %}
 
 {% block title %}Accounting | Targets Database{% endblock title %}
@@ -14,6 +15,7 @@
         <div class="d-flex flex-wrap gap-2">
             <a class="btn btn-quiet" href="{% url 'add_outcoming' %}">Record expense</a>
             <a class="btn btn-brand" href="{% url 'add_saving' %}">Record saving</a>
+            <button type="button" class="btn btn-brand js-new-order">New order</button>
         </div>
     </header>
 
@@ -48,7 +50,7 @@
         </div>
     </section>
 
-    <section class="row g-4">
+    <section class="row g-4 justify-content-center">
         <div class="col-xl-6">
             <article class="data-card h-100">
                 <div class="mb-3">
@@ -87,12 +89,210 @@
                 </div>
             </article>
         </div>
+
+        <div class="col-xl-6">
+            <article class="data-card h-100">
+                <div class="mb-3 d-flex justify-content-between">
+                    <div>
+                        <h2 class="section-title">Uniform orders activity</h2>
+                        <p class="section-subtitle mb-0">Latest ordered uniforms.</p>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table id="orders-list">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Payments</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </article>
+        </div>
     </section>
 </section>
+
+<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" action="{% url 'manage_order' %}" id="order-manage-form" novalidate>
+                {% csrf_token %}
+                <input type="hidden" name="order_id" id="order-id" value="">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title" id="orderModalLabel">New order</h5>
+                        <p class="mb-0 text-body-secondary" id="orderModalSubtitle">Create a uniform order and manage its payments in one place.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-4">
+                        <div class="col-lg-5">
+                            <section class="content-card h-100">
+                                <div class="mb-4">
+                                    <h2 class="section-title">Order details</h2>
+                                    <p class="section-subtitle mb-0">Edit the order description.</p>
+                                </div>
+                                {% crispy order_form %}
+                            </section>
+                        </div>
+                        <div class="col-lg-7">
+                            <section class="content-card h-100">
+                                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+                                    <div>
+                                        <h2 class="section-title">Payments</h2>
+                                        <p class="section-subtitle mb-0">Edit current payments or add more rows.</p>
+                                    </div>
+                                    <button type="button" class="btn btn-brand" id="add-payment-row">Add payment</button>
+                                </div>
+                                {% if order_payment_formset.non_form_errors %}
+                                    <div class="alert alert-danger" role="alert">
+                                        {{ order_payment_formset.non_form_errors }}
+                                    </div>
+                                {% endif %}
+                                {{ order_payment_formset.management_form }}
+                                <div id="order-payment-rows" class="d-grid gap-3">
+                                    {% for form in order_payment_formset.forms %}
+                                        <div class="inline-note order-payment-row">
+                                            {% crispy form %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                <div id="empty-payment-form" class="d-none">
+                                    <div class="inline-note order-payment-row">
+                                        {% crispy order_payment_formset.empty_form %}
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-quiet" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand">Save order</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock content %}
 
 {% block extra_js %}
 <script>
+    const orderModalEl = document.getElementById('orderModal');
+    const orderModalTitle = document.getElementById('orderModalLabel');
+    const orderModalSubtitle = document.getElementById('orderModalSubtitle');
+    const orderFormEl = document.getElementById('order-manage-form');
+    const orderIdInput = document.getElementById('order-id');
+    const orderDescriptionInput = document.getElementById('id_order-description');
+    const paymentRows = document.getElementById('order-payment-rows');
+    const emptyPaymentTemplate = document.getElementById('empty-payment-form');
+    const addPaymentButton = document.getElementById('add-payment-row');
+    const paymentTotalForms = document.getElementById('id_payments-TOTAL_FORMS');
+
+    function decodeRowData(encodedData) {
+        if (!encodedData) {
+            return null;
+        }
+
+        try {
+            return JSON.parse(decodeURIComponent(encodedData));
+        } catch (error) {
+            return null;
+        }
+    }
+
+    function getPaymentRowHtml(index) {
+        const templateRow = emptyPaymentTemplate.querySelector('.order-payment-row');
+        return templateRow.outerHTML.replace(/__prefix__/g, index);
+    }
+
+    function appendPaymentRow(paymentData) {
+        const index = parseInt(paymentTotalForms.value, 10);
+        paymentRows.insertAdjacentHTML('beforeend', getPaymentRowHtml(index));
+        const wrapper = paymentRows.lastElementChild;
+        paymentTotalForms.value = index + 1;
+
+        if (paymentData) {
+            const amountInput = wrapper.querySelector(`input[name="payments-${index}-amount"]`);
+            const payDateInput = wrapper.querySelector(`input[name="payments-${index}-pay_date"]`);
+            const idInput = wrapper.querySelector(`input[name="payments-${index}-id"]`);
+
+            if (amountInput) {
+                amountInput.value = paymentData.amount || '';
+            }
+
+            if (payDateInput) {
+                payDateInput.value = paymentData.pay_date || '';
+            }
+
+            if (idInput) {
+                idInput.value = paymentData.id || '';
+            }
+        }
+    }
+
+    function clearPaymentRows() {
+        paymentRows.innerHTML = '';
+        paymentTotalForms.value = 0;
+    }
+
+    function populatePaymentRows(payments) {
+        clearPaymentRows();
+
+        if (payments && payments.length) {
+            payments.forEach(function(payment) {
+                appendPaymentRow(payment);
+            });
+        }
+
+        appendPaymentRow();
+    }
+
+    function resetOrderModal() {
+        orderIdInput.value = '';
+        orderDescriptionInput.value = '';
+        orderModalTitle.textContent = 'New order';
+        orderModalSubtitle.textContent = 'Create a uniform order and manage its payments in one place.';
+        populatePaymentRows([]);
+    }
+
+    function openOrderModal(orderData) {
+        if (orderData) {
+            orderIdInput.value = orderData.id || '';
+            orderDescriptionInput.value = orderData.description || '';
+            orderModalTitle.textContent = 'Edit order';
+            orderModalSubtitle.textContent = 'Update the order details and any existing payments.';
+            populatePaymentRows(orderData.payments || []);
+        } else {
+            resetOrderModal();
+        }
+
+        bootstrap.Modal.getOrCreateInstance(orderModalEl).show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const shouldOpenOrderModal = {{ show_order_modal|yesno:"true,false" }};
+        if (shouldOpenOrderModal && orderModalEl) {
+            bootstrap.Modal.getOrCreateInstance(orderModalEl).show();
+        }
+    });
+
+    $(document).on('click', '.js-new-order', function() {
+        openOrderModal(null);
+    });
+
+    $(document).on('click', '.js-edit-order', function() {
+        const orderData = decodeRowData($(this).attr('data-order'));
+        openOrderModal(orderData);
+    });
+
+    $(document).on('click', '#add-payment-row', function() {
+        appendPaymentRow();
+    });
+
     let outcoming_table = new DataTable('#outcoming-list', {
         responsive: true,
         ajax : '{% url "get_outcoming_list" %}',
@@ -108,6 +308,38 @@
         columns : [
             { data:'date' },
             { data:'amount'}
+        ]
+    })
+    let order_table = new DataTable('#orders-list', {
+        responsive: true,
+        ajax : '{% url "get_orders_list" %}',
+        columns : [
+            { data:'description' },
+            {
+                data:'payments',
+                render : function(data) {
+                    if (!data || !data.length) {
+                        return '-';
+                    }
+
+                    return data.map(function(payment) {
+                        return `<span class="tag-chip me-2 mb-2">$${Intl.NumberFormat().format(Number(payment.amount || 0))} · ${payment.pay_date_label}</span>`;
+                    }).join(' ');
+                }
+            },
+            {
+                data:null,
+                orderable: false,
+                searchable: false,
+                render : function(data, type, row) {
+                    const orderPayload = encodeURIComponent(JSON.stringify(row));
+                    return `
+                        <button type="button" class="btn btn-sm btn-brand js-edit-order" data-order="${orderPayload}">
+                            Edit order
+                        </button>
+                    `;
+                }
+            },
         ]
     })
 </script>

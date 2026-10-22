@@ -9,7 +9,7 @@ from rest_framework import viewsets
 from rest_framework_api_key.permissions import HasAPIKey
 from .forms import AdminRegistrationForm, SchoolForm, PlayerForm, ParentForm, UniformForm, UniformPaymentForm
 from accounting.forms import SubscriptionForm
-from accounting.models import Subscription,UniformPayment
+from accounting.models import Subscription,UniformPayment,UniformOrder,OrderPayment
 from django.contrib.auth import login, authenticate
 from django.core.paginator import Paginator
 from django.forms import inlineformset_factory
@@ -44,7 +44,7 @@ def get_players_list(request):
     draw = 1
     length = 100
     start = 0
-    players = Player.objects.all().order_by('created_date')
+    players = Player.objects.all().order_by('subscription__expiration_date')
     current_month = datetime.now().month
 
     paginator = Paginator(players, length)
@@ -102,6 +102,42 @@ def get_uniform_list(request):
         "draw" : draw,
         "length" : length,
         "total_uniforms" : uniforms.count(),
+        "data"  : data
+    }
+
+    return JsonResponse(response)
+
+def get_orders_list(request):
+    draw = 1
+    length = 100
+    start = 0
+    orders = UniformOrder.objects.order_by('created_date')
+
+    paginator = Paginator(orders, length)
+    page_number = start // length + 1
+    page = paginator.get_page(page_number)
+
+    data = [
+        {
+            'id' : order.id,
+            'description' : order.description,
+            'payments' : [
+                {
+                    'id': payment.id,
+                    'amount': payment.amount,
+                    'pay_date': payment.pay_date.strftime('%Y-%m-%d') if payment.pay_date else '',
+                    'pay_date_label': payment.pay_date.strftime('%b %d, %Y') if payment.pay_date else '-',
+                }
+                for payment in OrderPayment.objects.filter(order=order).order_by('pay_date')
+            ],
+        }
+        for order in page
+    ]
+
+    response = {
+        "draw" : draw,
+        "length" : length,
+        "total_orders" : orders.count(),
         "data"  : data
     }
 

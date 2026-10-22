@@ -3,6 +3,7 @@ from .views import *
 
 urlpatterns = [
     path('', accounting_dashboard, name="accounting_dashboard"),
+    path('orders/manage/', manage_order, name='manage_order'),
     path('ajax/get-outcoming-list/', get_outcoming_list, name='get_outcoming_list'),
     path('add-outcoming/', add_outcoming, name='add_outcoming'),
     path('ajax/get-savings-list/', get_saving_list, name='get_saving_list'),

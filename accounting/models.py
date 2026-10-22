@@ -53,3 +53,17 @@ class Savings(models.Model):
     ammount = models.CharField(max_length=7, null=True, blank=True)
     created_date = models.DateField(auto_now=True)
     created_by = models.ForeignKey(User,on_delete=models.PROTECT)
+
+class UniformOrder(models.Model):
+    id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
+    description = models.TextField(null=True,blank=True)
+    created_date = models.DateField(auto_now_add=True)
+    created_by = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)
+
+class OrderPayment(models.Model):
+    id = models.CharField(primary_key=True, default=uuid4, editable=False, max_length=50)
+    order = models.ForeignKey(UniformOrder,on_delete=models.CASCADE,null=True,blank=True)
+    amount = models.CharField(max_length=6,null=True,blank=True)
+    pay_date = models.DateField(null=True,blank=True)
+    created_date = models.DateField(auto_now_add=True)
+    created_by = models.ForeignKey(User,on_delete=models.CASCADE,null=True,blank=True)

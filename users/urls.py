@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import adminRegistration, get_players_list, register_player, players_list, player_detail, edit_player,get_uniform_list,uniforms_list
+from .views import *
 
 urlpatterns = [
     path('register/', adminRegistration, name='register'),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('edit-player/<id>/', edit_player, name='edit_player'),
     path('get-uniforms-list/', get_uniform_list, name="get_uniforms_list"),
     path('uniforms-list/', uniforms_list, name='uniforms_list'),
+    path('ajax/get-orders-list/', get_orders_list, name='get_orders_list'),
 ]

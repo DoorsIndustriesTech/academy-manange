@@ -396,6 +396,15 @@ a {
     font-size: 0.88rem;
 }
 
+button.tag-chip {
+    appearance: none;
+    cursor: pointer;
+}
+
+.tag-chip--button {
+    line-height: 1;
+}
+
 .inline-note {
     padding: 1rem;
     border-radius: 18px;
